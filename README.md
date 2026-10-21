@@ -1,8 +1,9 @@
 ![Capa do projeto SalesInsight PY](assets/capa-salesinsight.png.png)
-
+*Imagem de capa produzida com inteligência artificial (IA).*
 
 # salesinsight-py
 # Análise e Visualização de Dados de Vendas
+
 
 ## Sobre o projeto
 Analise e visualizacao de dados de vendas desenvolvida em Python. O projeto carrega, limpa, transforma, agrega e visualiza um dataset de
