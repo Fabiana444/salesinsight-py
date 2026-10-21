@@ -1,3 +1,5 @@
+![Capa do projeto SalesInsight PY](capa-salesinsight.png
+
 # salesinsight-py
 # Análise e Visualização de Dados de Vendas
 
