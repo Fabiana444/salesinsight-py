@@ -87,3 +87,139 @@ def inspecionar_dados(df):
     print(f"\nPrimeiros registros:\n{df.head()}")
     return df
 inspecionar_dados(df_bruto)
+
+
+# RF03 - Tratar os dados (datetime)
+
+def tratar_dados(df):
+    """
+    Trata o DataFrame de vendas.
+
+    Retorna:
+        (df_limpo, relatorio), onde relatorio é um dicionário
+        com as contagens de registros iniciais, convertidos e finais.
+    """
+
+    # Gerar e usar uma cópia para preservar o DataFrame original
+    df_limpo = df.copy()
+    registros_iniciais = len(df_limpo)
+    tipos_originais = df.dtypes.copy()
+
+    # 1. Remover espaços extras nas colunas de texto
+    colunas_texto = ["cliente", "produto", "categoria", "regiao"]
+    textos_alterados = pd.Series(False, index=df.index)
+
+    for coluna in colunas_texto:
+        texto_original = df[coluna]
+        texto_limpo = df_limpo[coluna].str.strip()
+
+        diferencas = (
+            texto_original.ne(texto_limpo)
+            & ~(texto_original.isna() & texto_limpo.isna())
+        ).fillna(False)
+
+        textos_alterados |= diferencas
+        df_limpo[coluna] = texto_limpo
+
+    registros_com_texto_alterado = int(textos_alterados.sum())
+
+    # 2. Converter as datas e remover as inválidas
+    datas_convertidas = pd.to_datetime(
+        df_limpo["data_venda"], errors="coerce"
+    )
+
+    datas_validas = int(datas_convertidas.notna().sum())
+    datas_invalidas = int(datas_convertidas.isna().sum())
+
+    df_limpo["data_venda"] = datas_convertidas
+    df_limpo = df_limpo.dropna(subset=["data_venda"])
+
+    # 3. Ajustar os tipos numéricos
+    df_limpo["quantidade"] = df_limpo["quantidade"].astype(int)
+    df_limpo["preco_unitario"] = (
+        df_limpo["preco_unitario"].astype(float)
+    )
+
+    # Contar conversões de tipo por motivo
+    conversao_data = (
+        datas_validas
+        if tipos_originais["data_venda"] != df_limpo["data_venda"].dtype
+        else 0
+    )
+
+    conversao_quantidade = (
+        len(df_limpo)
+        if tipos_originais["quantidade"] != df_limpo["quantidade"].dtype
+        else 0
+    )
+
+    conversao_preco = (
+        len(df_limpo)
+        if tipos_originais["preco_unitario"]
+        != df_limpo["preco_unitario"].dtype
+        else 0
+    )
+
+    # Identificar registros finais que sofreram alguma alteração
+    registros_alterados = pd.Series(False, index=df_limpo.index)
+
+    # A conversão de texto para datetime altera o tipo das datas válidas
+    if tipos_originais["data_venda"] != df_limpo["data_venda"].dtype:
+        registros_alterados[:] = True
+
+    # Considerar alterações de texto
+    registros_alterados |= textos_alterados.loc[df_limpo.index]
+
+    # Considerar alterações de tipo ou de valor nas colunas numéricas
+    for coluna in ["quantidade", "preco_unitario"]:
+        if tipos_originais[coluna] != df_limpo[coluna].dtype:
+            registros_alterados[:] = True
+        else:
+            diferencas = (
+                df.loc[df_limpo.index, coluna]
+                .ne(df_limpo[coluna])
+                .fillna(False)
+            )
+            registros_alterados |= diferencas
+
+    registros_convertidos_de_tipo = int(registros_alterados.sum())
+    registros_sem_alteracao = int((~registros_alterados).sum())
+
+    # 4. Montar o relatório de limpeza
+    registros_finais = len(df_limpo)
+    registros_removidos = registros_iniciais - registros_finais
+
+    relatorio = {
+        "registros_iniciais": registros_iniciais,
+        "datas_validas_convertidas": conversao_data,
+        "datas_invalidas": datas_invalidas,
+        "quantidade_convertida": conversao_quantidade,
+        "preco_unitario_convertido": conversao_preco,
+        "registros_com_texto_alterado": registros_com_texto_alterado,
+        "registros_convertidos_de_tipo": registros_convertidos_de_tipo,
+        "registros_sem_alteracao": registros_sem_alteracao,
+        "registros_removidos": registros_removidos,
+        "registros_finais": registros_finais,
+    }
+
+    print("\n=== RELATÓRIO DE LIMPEZA — RF03 ===")
+    print("Registros iniciais:", registros_iniciais)
+
+    print("\nConversões por motivo:")
+    print("Datas válidas convertidas para datetime:", conversao_data)
+    print("Registros convertidos para quantidade int:", conversao_quantidade)
+    print("Registros convertidos para preço float:", conversao_preco)
+    print("Registros com texto alterado:", registros_com_texto_alterado)
+
+    print("\nResultado da limpeza:")
+    print("Registros convertidos de tipo:", registros_convertidos_de_tipo)
+    print("Registros sem alteração:", registros_sem_alteracao)
+    print("Datas inválidas encontradas:", datas_invalidas)
+    print("Registros removidos:", registros_removidos)
+    print("Registros finais:", registros_finais)
+
+    return df_limpo, relatorio
+
+
+# Executar o RF03
+df_limpo, relatorio = tratar_dados(df_bruto)
