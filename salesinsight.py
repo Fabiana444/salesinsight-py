@@ -320,3 +320,22 @@ print(
         ]
     ].isnull().sum()
 )
+
+
+# B03 - Tabela cruzada mês x categoria
+
+# B03 - Tabela cruzada mês x categoria
+
+# Agrupar a receita total por mês e categoria
+receita_mes_categoria = df_rf04.groupby(["mes", "mes_nome", "categoria"])["receita_total"].sum().reset_index()
+
+# Criar a tabela cruzada
+tabela_mes_categoria = receita_mes_categoria.pivot(
+    index=["mes", "mes_nome"],
+    columns="categoria",
+    values="receita_total"
+)
+
+# Exibir a tabela cruzada
+print("=== B03 - RECEITA TOTAL POR MÊS E CATEGORIA ===")
+print(tabela_mes_categoria)
