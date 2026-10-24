@@ -223,3 +223,100 @@ def tratar_dados(df):
 
 # Executar o RF03
 df_limpo, relatorio = tratar_dados(df_bruto)
+
+
+# RF04 - Criar Colunas Derivadas com Transformações Condicionais
+
+# Criar uma cópia do DataFrame limpo para trabalhar no RF04
+df_rf04 = df_limpo.copy()
+
+# Reiniciar os índices após a remoção de linhas no RF03
+df_rf04 = df_rf04.reset_index(drop=True)
+
+# 1. Criar a coluna receita_total por operação vetorizada
+df_rf04["receita_total"] = (df_rf04["quantidade"] * df_rf04["preco_unitario"])
+
+# 2. Criar a coluna mes(nº mes) extraído da data com .dt.month
+df_rf04["mes"] = df_rf04["data_venda"].dt.month
+
+# 3. Criar a coluna nome do mes em portugues com um dicionário de mapeamento
+meses = {
+    1: "Janeiro",
+    2: "Fevereiro",
+    3: "Março",
+    4: "Abril",
+    5: "Maio",
+    6: "Junho",
+    7: "Julho",
+    8: "Agosto",
+    9: "Setembro",
+    10: "Outubro",
+    11: "Novembro",
+    12: "Dezembro",
+}
+
+df_rf04["mes_nome"] = df_rf04["mes"].map(meses)
+
+# 4. Criar a coluna trimestre no formato Q1 a Q4, a partir de .dt.quarter
+df_rf04["trimestre"] = ("Q" + df_rf04["data_venda"].dt.quarter.astype(str))
+
+# 5. Criar a coluna ano extraído da data com .dt.year
+df_rf04["ano"] = df_rf04["data_venda"].dt.year
+
+# 6. Criar a coluna faixa_receita_item com classificação condicional
+condicoes = [
+    df_rf04["receita_total"] < 500,
+    ((df_rf04["receita_total"] >= 500) & (df_rf04["receita_total"] < 5000)),
+    df_rf04["receita_total"] >= 5000,
+]
+
+faixas = ["Baixo Valor", "Medio Valor", "Alto Valor"]
+
+df_rf04["faixa_receita_item"] = "Nao Classificado"
+
+for condicao, faixa in zip(condicoes, faixas):
+    df_rf04.loc[condicao, "faixa_receita_item"] = faixa
+
+# Organizar as colunas: dados originais e colunas derivadas
+colunas_rf04 = [
+    "id_venda",
+    "data_venda",
+    "cliente",
+    "produto",
+    "categoria",
+    "regiao",
+    "quantidade",
+    "preco_unitario",
+    "receita_total",
+    "mes",
+    "mes_nome",
+    "trimestre",
+    "ano",
+    "faixa_receita_item",
+]
+
+df_rf04 = df_rf04[colunas_rf04]
+
+# Exibir os resultados do RF04
+print("\n=== RF04 - COLUNAS DERIVADAS ===")
+print("Dimensões:", df_rf04.shape)
+print("\nColunas:", list(df_rf04.columns))
+print("\nPrimeiros registros:")
+print(df_rf04.head().assign(data_venda=df_rf04["data_venda"].head().dt.strftime("%d-%m-%Y")))
+
+print("\nDistribuição das faixas de receita:")
+print(df_rf04["faixa_receita_item"].value_counts())
+
+print("\nValores ausentes nas colunas derivadas:")
+print(
+    df_rf04[
+        [
+            "receita_total",
+            "mes",
+            "mes_nome",
+            "trimestre",
+            "ano",
+            "faixa_receita_item",
+        ]
+    ].isnull().sum()
+)
