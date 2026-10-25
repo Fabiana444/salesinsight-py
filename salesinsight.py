@@ -416,3 +416,89 @@ print(metricas["por_regiao"].to_string(index=False, formatters={
 }))
 
 
+# ============================================================
+# EXTRA 2 - ANALISAR VENDAS POR DIA DA SEMANA
+# ============================================================
+
+# Criar uma cópia do DataFrame do RF04
+df_extra2 = df_rf04.copy()
+
+# Criar a coluna com o nome do dia da semana
+dias_semana = {
+    0: "Segunda-feira",
+    1: "Terça-feira",
+    2: "Quarta-feira",
+    3: "Quinta-feira",
+    4: "Sexta-feira",
+    5: "Sábado",
+    6: "Domingo"
+}
+
+df_extra2["dia_semana"] = df_extra2["data_venda"].dt.dayofweek.map(dias_semana)
+
+# Identificar vendas realizadas no fim de semana
+df_extra2["fim_de_semana"] = df_extra2["data_venda"].dt.dayofweek >= 5
+
+# Ordenar as vendas da data mais recente para a mais antiga
+df_extra2 = df_extra2.sort_values("data_venda", ascending=False)
+
+# Exibir as novas colunas
+print("\n\n=== DIAS DA SEMANA E FIM DE SEMANA ===")
+print(
+    df_extra2[["data_venda", "dia_semana", "fim_de_semana"]]
+    .head(10)
+    .to_string(
+        index=False,
+        formatters={
+            "data_venda": lambda data: data.strftime("%d-%m-%Y")
+        }
+    )
+)
+
+# Conferir os tipos de dados
+print("\n=== TIPOS DE DADOS DAS NOVAS COLUNAS ===")
+print(df_extra2[["dia_semana", "fim_de_semana"]].dtypes)
+
+# Definir a ordem dos dias da semana para a análise
+ordem_dias = [
+    "Domingo",
+    "Segunda-feira",
+    "Terça-feira",
+    "Quarta-feira",
+    "Quinta-feira",
+    "Sexta-feira",
+    "Sábado"
+]
+
+# Calcular a quantidade de vendas por dia da semana
+vendas_por_dia = (
+    df_extra2.groupby("dia_semana")
+    .size()
+    .reindex(ordem_dias, fill_value=0)
+    .rename_axis("dia_semana")
+    .reset_index(name="quantidade_vendas")
+)
+
+# Identificar os dias com maior e menor fluxo de vendas
+maior_fluxo = vendas_por_dia["quantidade_vendas"].max()
+menor_fluxo = vendas_por_dia["quantidade_vendas"].min()
+
+# Exibir a quantidade de vendas por dia da semana
+print("\n=== QUANTIDADE DE VENDAS POR DIA DA SEMANA ===")
+print(vendas_por_dia.to_string(index=False))
+
+# Exibir os dias com maior fluxo de vendas
+print("\n=== DIAS COM MAIOR FLUXO DE VENDAS ===")
+print(
+    vendas_por_dia[
+        vendas_por_dia["quantidade_vendas"] == maior_fluxo
+    ].to_string(index=False)
+)
+
+# Exibir os dias com menor fluxo de vendas
+print("\n=== DIAS COM MENOR FLUXO DE VENDAS ===")
+print(
+    vendas_por_dia[
+        vendas_por_dia["quantidade_vendas"] == menor_fluxo
+    ].to_string(index=False)
+)
