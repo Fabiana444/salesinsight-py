@@ -502,3 +502,42 @@ print(
         vendas_por_dia["quantidade_vendas"] == menor_fluxo
     ].to_string(index=False)
 )
+
+
+# ============================================================
+# RF06 - SEGMENTAR CLIENTES POR NÍVEL DE GASTO
+# ============================================================
+
+def segmentar_clientes(df):
+    """
+    Agrupa por cliente, soma a receita e classifica em
+    Bronze / Prata / Ouro.
+    Retorna um DataFrame com: cliente, total_gasto, segmento.
+    """
+    clientes = df.groupby("cliente")["receita_total"].sum().reset_index()
+    clientes = clientes.rename(columns={"receita_total": "total_gasto"})
+
+    clientes["segmento"] = clientes["total_gasto"].apply(
+        lambda gasto: "Bronze" if gasto < 5000
+        else "Prata" if gasto <= 15000
+        else "Ouro"
+    )
+
+    return clientes
+
+
+# Segmentar clientes
+clientes_segmentados = segmentar_clientes(df_rf04)
+
+# Exibir os 10 maiores clientes
+print("\n\n=== RF06 - 10 MAIORES CLIENTES ===")
+print(
+    clientes_segmentados
+    .sort_values("total_gasto", ascending=False)
+    .head(10)
+    .to_string(index=False)
+)
+
+# Exibir a distribuição de clientes por segmento
+print("\n=== RF06 - DISTRIBUIÇÃO DE CLIENTES POR SEGMENTO ===")
+print(clientes_segmentados["segmento"].value_counts())
