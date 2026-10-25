@@ -322,9 +322,9 @@ print(
 )
 
 
+# ============================================================
 # B03 - Tabela cruzada mês x categoria
-
-# B03 - Tabela cruzada mês x categoria
+# ============================================================
 
 # Agrupar a receita total por mês e categoria
 receita_mes_categoria = df_rf04.groupby(["mes", "mes_nome", "categoria"])["receita_total"].sum().reset_index()
@@ -337,5 +337,82 @@ tabela_mes_categoria = receita_mes_categoria.pivot(
 )
 
 # Exibir a tabela cruzada
-print("=== B03 - RECEITA TOTAL POR MÊS E CATEGORIA ===")
+print("\n=== B03 - RECEITA TOTAL POR MÊS E CATEGORIA ===")
 print(tabela_mes_categoria)
+
+
+# ============================================================
+# RF05 - Calcular métricas agregadas com groupby
+# ============================================================
+
+def calcular_metricas(df):
+    """
+    Calcula as metricas agregadas do dataset.
+    Retorna um dicionario no formato {nome_da_metrica: DataFrame}.
+    Chaves minimas: por_mes, top_produtos, por_categoria, por_regiao.
+    """
+    metricas = {}
+
+    # Calcular as metricas por mes
+    por_mes = df.groupby("mes").agg({
+        "receita_total": "sum",
+        "quantidade": "sum",
+        "id_venda": "count"
+    }).reset_index()
+
+    por_mes = por_mes.rename(columns={
+        "quantidade": "quantidade_vendida",
+        "id_venda": "n_vendas"
+    })
+
+    # Calcular o Top 5 produtos
+    top_produtos = df.groupby("produto")["receita_total"].sum().reset_index()
+    top_produtos = top_produtos.sort_values("receita_total", ascending=False).head(5)
+
+    # Calcular as metricas por categoria
+    por_categoria = df.groupby("categoria")["receita_total"].sum().reset_index()
+    por_categoria = por_categoria.sort_values("receita_total", ascending=False)
+
+    # Calcular as metricas por regiao
+    por_regiao = df.groupby("regiao")["receita_total"].agg(["sum", "mean"]).reset_index()
+    por_regiao = por_regiao.rename(columns={
+        "sum": "receita_total",
+        "mean": "ticket_medio"
+    })
+    por_regiao = por_regiao.sort_values("receita_total", ascending=False)
+
+    metricas["por_mes"] = por_mes
+    metricas["top_produtos"] = top_produtos
+    metricas["por_categoria"] = por_categoria
+    metricas["por_regiao"] = por_regiao
+
+    return metricas
+
+
+# Chamar a função e guardar os resultados
+metricas = calcular_metricas(df_rf04)
+
+
+# Exibir os resultados de Métricas Agregadas com groupby
+print("\n=== MÉTRICAS POR MÊS ===")
+print(metricas["por_mes"].to_string(index=False, formatters={
+    "receita_total": lambda valor: f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+}))
+
+print("\n=== TOP 5 PRODUTOS ===")
+print(metricas["top_produtos"].to_string(index=False, formatters={
+    "receita_total": lambda valor: f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+}))
+
+print("\n=== MÉTRICAS POR CATEGORIA ===")
+print(metricas["por_categoria"].to_string(index=False, formatters={
+    "receita_total": lambda valor: f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+}))
+
+print("\n=== MÉTRICAS POR REGIÃO ===")
+print(metricas["por_regiao"].to_string(index=False, formatters={
+    "receita_total": lambda valor: f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
+    "ticket_medio": lambda valor: f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+}))
+
+
