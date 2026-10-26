@@ -627,9 +627,7 @@ if os.path.exists(caminho_grafico):
 # ============================================================
 # --- Figura 3: Quantidade x Receita por Categoria ---
 # ============================================================
-
-    # --- Figura 3: Quantidade versus Receita ---
-
+ 
 fig, ax = plt.subplots(figsize=(12, 6))
 
 # Criar o gráfico de dispersão, colorido por categoria
@@ -668,6 +666,208 @@ plt.savefig(caminho_grafico, dpi=150)
 plt.close()
 
 # Verificar se o arquivo foi criado e exibir o gráfico exportado
+print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+if os.path.exists(caminho_grafico):
+    display(Image(filename=caminho_grafico))
+
+
+# ============================================================
+# --- Gráfico Receita Total por Região ---
+# ============================================================
+
+# Ordenar as regiões pela receita total
+df_regiao = metricas["por_regiao"].sort_values(
+    by="receita_total",
+    ascending=True
+)
+
+fig, ax = plt.subplots(figsize=(12, 6))
+
+ax.barh(
+    df_regiao["regiao"],
+    df_regiao["receita_total"],
+    color=[
+        "tab:green",
+        "tab:orange",
+        "tab:purple",
+        "tab:cyan",
+        "tab:pink"
+    ],
+    height=0.6
+)
+
+ax.set_title("Receita Total por Região")
+ax.set_xlabel("Receita Total (R$)")
+ax.set_ylabel("Região")
+
+# Configurar a escala do eixo horizontal
+ax.set_xlim(0, 400000)
+ax.xaxis.set_major_locator(ticker.MultipleLocator(50000))
+ax.xaxis.set_major_formatter(
+    ticker.StrMethodFormatter("{x:,.0f}")
+)
+
+# Exibir os valores reais ao lado das barras
+for container in ax.containers:
+    ax.bar_label(
+        container,
+        labels=[
+            f"R$ {valor:,.2f}"
+            for valor in container.datavalues
+        ],
+        padding=5,
+        fontsize=9
+    )
+
+plt.tight_layout()
+
+# Salvar o gráfico
+caminho_grafico = "outputs/graficos/receita_por_regiao.png"
+plt.savefig(caminho_grafico, dpi=150)
+plt.close()
+
+# Verificar se o arquivo foi gerado e exibir o gráfico
+print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+if os.path.exists(caminho_grafico):
+    display(Image(filename=caminho_grafico))
+
+
+
+# ============================================================
+# --- Figura 4: Painel Resumo ---
+# ============================================================
+  
+# Criar a figura com quatro gráficos (2 linhas e 2 colunas)
+fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+
+# Gráfico 1: Receita total por mês
+axes[0, 0].plot(
+    metricas["por_mes"]["mes"],
+    metricas["por_mes"]["receita_total"],
+    marker="o",
+    linewidth=2,
+    color="tab:pink",
+    label="Receita total"
+)
+
+axes[0, 0].set_title("Receita Total por Mês")
+axes[0, 0].set_xlabel("Mês")
+axes[0, 0].set_ylabel("Receita Total (R$)")
+axes[0, 0].yaxis.set_major_formatter(
+    ticker.StrMethodFormatter("{x:,.0f}")
+)
+axes[0, 0].legend()
+
+# Gráfico 2: Top 5 produtos por receita
+sns.barplot(
+    data=metricas["top_produtos"],
+    y="produto",
+    x="receita_total",
+    hue="produto",
+    legend=False,
+    palette={
+        "Notebook": "tab:pink",
+        "Smartphone": "tab:cyan",
+        "Tablet": "tab:purple",
+        "Monitor": "tab:orange",
+        "Headset": "tab:red"
+    },
+    ax=axes[0, 1]
+)
+
+axes[0, 1].set_title("Top 5 Produtos por Receita")
+axes[0, 1].set_xlabel("Receita Total (R$)")
+axes[0, 1].set_ylabel("Produto")
+axes[0, 1].xaxis.set_major_formatter(
+    ticker.StrMethodFormatter("{x:,.0f}")
+)
+
+# Gráfico 3: Quantidade versus receita por categoria
+sns.scatterplot(
+    data=df_rf04,
+    x="quantidade",
+    y="receita_total",
+    hue="categoria",
+    palette={
+        "Computadores": "tab:pink",
+        "Celulares": "tab:cyan",
+        "Perifericos": "tab:purple"
+    },
+    ax=axes[1, 0]
+)
+
+axes[1, 0].set_title("Quantidade versus Receita por Categoria")
+axes[1, 0].set_xlabel("Quantidade")
+axes[1, 0].set_ylabel("Receita Total (R$)")
+axes[1, 0].yaxis.set_major_formatter(
+    ticker.StrMethodFormatter("{x:,.0f}")
+)
+axes[1, 0].legend(title="Categoria")
+
+# Gráfico 4: Receita total por região (barras horizontais)
+df_regiao = metricas["por_regiao"].sort_values(
+    by="receita_total",
+    ascending=True
+)
+
+cores_regiao = {
+    "Centro-Oeste": "tab:pink",
+    "Norte": "tab:cyan",
+    "Nordeste": "tab:purple",
+    "Sudeste": "tab:orange",
+    "Sul": "tab:green"
+}
+
+axes[1, 1].barh(
+    df_regiao["regiao"],
+    df_regiao["receita_total"],
+    color=[
+        cores_regiao[regiao]
+        for regiao in df_regiao["regiao"]
+    ],
+    height=0.6
+)
+
+axes[1, 1].set_title("Receita Total por Região")
+axes[1, 1].set_xlabel("Receita Total (R$)")
+axes[1, 1].set_ylabel("Região")
+
+# Reservar espaço à direita para os valores das barras
+axes[1, 1].set_xlim(0, 460000)
+
+axes[1, 1].xaxis.set_major_locator(
+    ticker.MultipleLocator(100000)
+)
+axes[1, 1].xaxis.set_major_formatter(
+    ticker.StrMethodFormatter("{x:,.0f}")
+)
+
+# Exibir os valores reais ao lado das barras
+for container in axes[1, 1].containers:
+    axes[1, 1].bar_label(
+        container,
+        labels=[
+            f"R$ {valor:,.2f}"
+            for valor in container.datavalues
+        ],
+        padding=4,
+        fontsize=9
+    )
+
+# Título geral do painel
+fig.suptitle("SalesInsight PY - Painel Resumo", fontsize=16)
+
+# Ajustar o layout para acomodar o título geral
+plt.tight_layout(rect=[0, 0, 1, 0.95])
+
+# Salvar o painel
+caminho_grafico = "outputs/graficos/painel_resumo.png"
+plt.savefig(caminho_grafico, dpi=150, bbox_inches="tight")
+plt.close()
+
+# Verificar se o arquivo foi criado e exibir a imagem exportada
 print("Arquivo existe:", os.path.exists(caminho_grafico))
 
 if os.path.exists(caminho_grafico):
