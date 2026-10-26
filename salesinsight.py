@@ -547,10 +547,13 @@ print(clientes_segmentados["segmento"].value_counts())
 # RF07 - CRIAR VISUALIZAÇÕES COM MATPLOTLIB
 # ============================================================
 
-# Receita total por mês ao longo do período
+# ============================================================
+# --- Figura 1: Receita total por mês ao longo do período ---
+# ============================================================
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.ticker as ticker
 import os
 from IPython.display import display, Image
 
@@ -581,3 +584,41 @@ if os.path.exists(caminho_grafico):
     display(Image(filename=caminho_grafico))
 
 
+# ============================================================
+# --- Figura 2: Top 5 produtos por receita ---
+# ============================================================
+
+fig, ax = plt.subplots(figsize=(12, 6))
+
+sns.barplot(
+    data=metricas["top_produtos"],
+    y="produto",
+    x="receita_total",
+    hue="produto",
+    legend=False,
+    palette=["tab:pink", "tab:cyan", "tab:purple", "tab:orange", "tab:red"],
+    ax=ax
+)
+
+ax.set_title("Top 5 Produtos por Receita")
+ax.set_xlabel("Receita Total (R$)")
+ax.set_ylabel("Produto")
+
+# Formatar os valores do eixo X com duas casas decimais
+ax.xaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.2f}"))
+
+plt.tight_layout()
+
+# Salvar o gráfico
+caminho_grafico = "outputs/graficos/top_produtos.png"
+plt.savefig(caminho_grafico, dpi=150)
+plt.close()
+
+# Exibir o gráfico exportado
+import os
+from IPython.display import display, Image
+
+print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+if os.path.exists(caminho_grafico):
+    display(Image(filename=caminho_grafico))
