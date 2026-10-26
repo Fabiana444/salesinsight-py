@@ -541,3 +541,43 @@ print(
 # Exibir a distribuição de clientes por segmento
 print("\n=== RF06 - DISTRIBUIÇÃO DE CLIENTES POR SEGMENTO ===")
 print(clientes_segmentados["segmento"].value_counts())
+
+
+# ============================================================
+# RF07 - CRIAR VISUALIZAÇÕES COM MATPLOTLIB
+# ============================================================
+
+# Receita total por mês ao longo do período
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+from IPython.display import display, Image
+
+# Configuração visual global
+sns.set_theme(style="whitegrid", palette="muted")
+plt.rcParams["figure.figsize"] = (12, 6)
+plt.rcParams["axes.titlesize"] = 14
+
+# Criar a pasta para salvar os gráficos
+os.makedirs("outputs/graficos", exist_ok=True)
+
+# --- Figura 1: Receita total por mês ---
+fig, ax = plt.subplots(figsize=(12, 6))
+ax.plot(metricas["por_mes"]["mes"], metricas["por_mes"]["receita_total"], marker="o", markersize=7, linewidth=2.5, color="tab:pink", markerfacecolor="tab:cyan", markeredgecolor="white", label="Receita total")
+ax.set_title("Receita Total por Mês")
+ax.set_xlabel("Mês")
+ax.set_ylabel("Receita Total (R$)")
+ax.legend()
+plt.tight_layout()
+plt.savefig("outputs/graficos/receita_por_mes.png", dpi=150)
+plt.close()
+
+# Exibir o gráfico exportado
+caminho_grafico = "outputs/graficos/receita_por_mes.png"
+print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+if os.path.exists(caminho_grafico):
+    display(Image(filename=caminho_grafico))
+
+
