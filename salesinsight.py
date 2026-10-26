@@ -622,3 +622,53 @@ print("Arquivo existe:", os.path.exists(caminho_grafico))
 
 if os.path.exists(caminho_grafico):
     display(Image(filename=caminho_grafico))
+
+
+# ============================================================
+# --- Figura 3: Quantidade x Receita por Categoria ---
+# ============================================================
+
+    # --- Figura 3: Quantidade versus Receita ---
+
+fig, ax = plt.subplots(figsize=(12, 6))
+
+# Criar o gráfico de dispersão, colorido por categoria
+sns.scatterplot(
+    data=df_rf04,
+    x="quantidade",
+    y="receita_total",
+    hue="categoria",
+    palette={
+        "Computadores": "tab:pink",
+        "Celulares": "tab:cyan",
+        "Perifericos": "tab:purple"
+    },
+    ax=ax
+)
+
+# Configurar título e eixos
+ax.set_title("Quantidade versus Receita por Categoria")
+ax.set_xlabel("Quantidade")
+ax.set_ylabel("Receita Total (R$)")
+
+# Formatar os valores do eixo Y com duas casas decimais
+ax.yaxis.set_major_formatter(
+    ticker.StrMethodFormatter("{x:,.2f}")
+)
+
+# Exibir a legenda das categorias
+ax.legend(title="Categoria")
+
+# Ajustar o layout
+plt.tight_layout()
+
+# Salvar o gráfico
+caminho_grafico = "outputs/graficos/quantidade_vs_receita.png"
+plt.savefig(caminho_grafico, dpi=150)
+plt.close()
+
+# Verificar se o arquivo foi criado e exibir o gráfico exportado
+print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+if os.path.exists(caminho_grafico):
+    display(Image(filename=caminho_grafico))
