@@ -915,3 +915,52 @@ print("Arquivo existe:", os.path.exists(caminho_grafico))
 
 if os.path.exists(caminho_grafico):
     display(Image(filename=caminho_grafico))
+
+
+# ============================================================
+# GRÁFICO EXTRA 1 - QUANTIDADE DE VENDAS POR DIA DA SEMANA
+# ============================================================
+
+# Definir as cores para dias úteis e fins de semana
+cores_dias = [
+    "tab:orange" if dia in ["Domingo", "Sábado"] else "tab:cyan"
+    for dia in vendas_por_dia["dia_semana"]
+]
+
+# Criar o gráfico
+fig, ax = plt.subplots(figsize=(12, 6))
+
+barras = ax.bar(
+    vendas_por_dia["dia_semana"],
+    vendas_por_dia["quantidade_vendas"],
+    color=cores_dias
+)
+
+ax.set_title("Quantidade de Vendas por Dia da Semana")
+ax.set_xlabel("Dia da Semana")
+ax.set_ylabel("Quantidade de Vendas")
+
+# Exibir o valor sobre cada barra
+ax.bar_label(barras, padding=3)
+
+# Identificar as cores na legenda
+from matplotlib.patches import Patch
+
+ax.legend(
+    handles=[
+        Patch(facecolor="tab:cyan", label="Dias úteis"),
+        Patch(facecolor="tab:orange", label="Fim de semana")
+    ],
+    title="Tipo de dia"
+)
+
+plt.tight_layout()
+
+caminho_grafico = "outputs/graficos/vendas_por_dia_semana.png"
+plt.savefig(caminho_grafico, dpi=150)
+plt.close()
+
+print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+if os.path.exists(caminho_grafico):
+    display(Image(filename=caminho_grafico))
