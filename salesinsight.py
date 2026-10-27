@@ -1153,3 +1153,92 @@ if os.path.exists(caminho_grafico):
     display(Image(filename=caminho_grafico))
 
 
+# ==============================================================
+# GRÁFICO EXTRA 5 - QUANTIDADE DE CLIENTES POR REGIÃO E SEGMENTO
+# ==============================================================
+
+# Criar a tabela com a quantidade de clientes por região e segmento
+df_segmento_regiao = df_rf04.merge(
+    clientes_segmentados[["cliente", "segmento"]],
+    on="cliente",
+    how="left"
+)
+
+clientes_por_regiao = (
+    df_segmento_regiao
+    .groupby(["regiao", "segmento"])["cliente"]
+    .nunique()
+    .unstack(fill_value=0)
+)
+
+# Garantir a ordem dos segmentos
+ordem_segmentos = ["Bronze", "Prata", "Ouro"]
+clientes_por_regiao = clientes_por_regiao.reindex(
+    columns=ordem_segmentos,
+    fill_value=0
+)
+
+# Criar o gráfico de barras empilhadas
+fig, ax = plt.subplots(figsize=(12, 7))
+
+cores_segmentos = {
+    "Bronze": "tab:orange",
+    "Prata": "tab:cyan",
+    "Ouro": "tab:pink"
+}
+
+base = [0] * len(clientes_por_regiao)
+posicoes = list(range(len(clientes_por_regiao)))
+
+for segmento in ordem_segmentos:
+    valores = clientes_por_regiao[segmento].values
+
+    barras = ax.bar(
+        posicoes,
+        valores,
+        bottom=base,
+        color=cores_segmentos[segmento],
+        label=segmento,
+        width=0.65
+    )
+
+    # Exibir a quantidade dentro de cada segmento
+    for barra, valor, base_inferior in zip(barras, valores, base):
+        if valor > 0:
+            ax.text(
+                barra.get_x() + barra.get_width() / 2,
+                base_inferior + valor / 2,
+                str(int(valor)),
+                ha="center",
+                va="center",
+                fontsize=10,
+                fontweight="bold"
+            )
+
+    base = [b + v for b, v in zip(base, valores)]
+
+# Configurar o gráfico
+ax.set_title("Quantidade de Clientes por Região e Segmento")
+ax.set_xlabel("Região")
+ax.set_ylabel("Quantidade de Clientes")
+ax.set_xticks(posicoes)
+ax.set_xticklabels(clientes_por_regiao.index)
+ax.legend(title="Segmento de Cliente")
+ax.set_ylim(bottom=0)
+
+plt.tight_layout()
+
+# Salvar o gráfico
+caminho_grafico = (
+    "outputs/graficos/quantidade_clientes_regiao_segmento.png"
+)
+
+plt.savefig(caminho_grafico, dpi=150, bbox_inches="tight")
+plt.close()
+
+# Exibir o gráfico salvo
+print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+if os.path.exists(caminho_grafico):
+    display(Image(filename=caminho_grafico))
+
