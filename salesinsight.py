@@ -1086,3 +1086,70 @@ print("Arquivo existe:", os.path.exists(caminho_grafico))
 
 if os.path.exists(caminho_grafico):
     display(Image(filename=caminho_grafico))
+
+
+# ============================================================
+# GRÁFICO EXTRA 4 - RECEITA POR SEGMENTO DE CLIENTE E CATEGORIA DE PRODUTO
+# ============================================================
+
+# Cruzar as vendas com o segmento de cada cliente
+df_segmento_categoria = df_rf04.merge(
+    clientes_segmentados[["cliente", "segmento"]],
+    on="cliente",
+    how="left"
+)
+
+# Calcular a receita total por segmento de cliente e categoria de produto
+receita_segmento_categoria = (
+    df_segmento_categoria
+    .groupby(["segmento", "categoria"])["receita_total"]
+    .sum()
+    .reset_index()
+)
+
+# Definir a ordem dos segmentos e das categorias
+ordem_segmentos = ["Bronze", "Prata", "Ouro"]
+ordem_categorias = ["Computadores", "Celulares", "Perifericos"]
+
+# Criar o gráfico
+fig, ax = plt.subplots(figsize=(12, 6))
+
+sns.barplot(
+    data=receita_segmento_categoria,
+    x="segmento",
+    y="receita_total",
+    hue="categoria",
+    order=ordem_segmentos,
+    hue_order=ordem_categorias,
+    palette={
+        "Computadores": "tab:pink",
+        "Celulares": "tab:cyan",
+        "Perifericos": "tab:purple"
+    },
+    ax=ax
+)
+
+ax.set_title("Receita por Segmento de Cliente e Categoria de Produto")
+ax.set_xlabel("Segmento de Cliente")
+ax.set_ylabel("Receita Total (R$)")
+ax.yaxis.set_major_formatter(
+    ticker.StrMethodFormatter("R$ {x:,.0f}")
+)
+ax.legend(title="Categoria de Produto")
+
+plt.tight_layout()
+
+caminho_grafico = (
+    "outputs/graficos/"
+    "receita_segmento_cliente_categoria_produto.png"
+)
+
+plt.savefig(caminho_grafico, dpi=150)
+plt.close()
+
+print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+if os.path.exists(caminho_grafico):
+    display(Image(filename=caminho_grafico))
+
+
