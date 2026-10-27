@@ -1022,3 +1022,67 @@ print("Arquivo existe:", os.path.exists(caminho_grafico))
 
 if os.path.exists(caminho_grafico):
     display(Image(filename=caminho_grafico))
+
+
+# ============================================================
+# GRÁFICO EXTRA 3 - RECEITA POR TRIMESTRE E TOP 5 PRODUTOS
+# ============================================================
+
+# Identificar os cinco produtos com maior receita total
+top5_produtos = metricas["top_produtos"]["produto"].tolist()
+
+# Filtrar os dados dos cinco produtos
+df_top5_trimestre = df_rf04[
+    df_rf04["produto"].isin(top5_produtos)
+].copy()
+
+# Agrupar a receita total por trimestre e produto
+receita_trimestre_produto = (
+    df_top5_trimestre
+    .groupby(["trimestre", "produto"])["receita_total"]
+    .sum()
+    .reset_index()
+)
+
+# Criar o gráfico
+fig, ax = plt.subplots(figsize=(12, 6))
+
+sns.barplot(
+    data=receita_trimestre_produto,
+    x="trimestre",
+    y="receita_total",
+    hue="produto",
+    hue_order=top5_produtos,
+    palette={
+        "Notebook": "tab:pink",
+        "Smartphone": "tab:cyan",
+        "Tablet": "tab:purple",
+        "Monitor": "tab:orange",
+        "Headset": "tab:red"
+    },
+    ax=ax
+)
+
+ax.set_title("Receita por Trimestre e Top 5 Produtos")
+ax.set_xlabel("Trimestre")
+ax.set_ylabel("Receita Total (R$)")
+ax.legend(title="Produto")
+
+ax.yaxis.set_major_formatter(
+    ticker.StrMethodFormatter("{x:,.0f}")
+)
+
+plt.tight_layout()
+
+# Salvar o gráfico
+caminho_grafico = (
+    "outputs/graficos/receita_por_trimestre_top5.png"
+)
+plt.savefig(caminho_grafico, dpi=150)
+plt.close()
+
+# Verificar se o arquivo foi gerado e exibir o gráfico
+print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+if os.path.exists(caminho_grafico):
+    display(Image(filename=caminho_grafico))
