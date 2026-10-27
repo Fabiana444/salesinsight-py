@@ -872,3 +872,46 @@ print("Arquivo existe:", os.path.exists(caminho_grafico))
 
 if os.path.exists(caminho_grafico):
     display(Image(filename=caminho_grafico))
+
+
+# ============================================================
+# GRÁFICO BÔNUS - B03 - RECEITA TOTAL POR MÊS E CATEGORIA
+# ============================================================
+
+fig, ax = plt.subplots(figsize=(12, 6))
+
+for categoria, cor in zip(
+    ["Celulares", "Computadores", "Perifericos"],
+    ["tab:cyan", "tab:pink", "tab:purple"]
+):
+    ax.plot(
+        tabela_mes_categoria.index.get_level_values("mes"),
+        tabela_mes_categoria[categoria],
+        marker="o",
+        linewidth=2,
+        color=cor,
+        label=categoria
+    )
+
+ax.set_title("Receita Total por Mês e Categoria")
+ax.set_xlabel("Mês")
+ax.set_ylabel("Receita Total (R$)")
+ax.set_xticks(range(1, 13))
+ax.set_xticklabels(
+    tabela_mes_categoria.index.get_level_values("mes_nome")
+)
+ax.yaxis.set_major_formatter(
+    ticker.StrMethodFormatter("R$ {x:,.0f}")
+)
+ax.legend(title="Categoria")
+
+plt.tight_layout()
+
+caminho_grafico = "outputs/graficos/receita_por_mes_categoria.png"
+plt.savefig(caminho_grafico, dpi=150)
+plt.close()
+
+print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+if os.path.exists(caminho_grafico):
+    display(Image(filename=caminho_grafico))
