@@ -1242,3 +1242,51 @@ print("Arquivo existe:", os.path.exists(caminho_grafico))
 if os.path.exists(caminho_grafico):
     display(Image(filename=caminho_grafico))
 
+
+# ============================================================
+# GRÁFICO BÔNUS - B04 - MAPA DE CALOR DA RECEITA POR PRODUTO E CATEGORIA
+# ============================================================
+
+# Calcular a receita total por categoria e produto
+receita_categoria_produto = (
+    df_rf04
+    .groupby(["categoria", "produto"])["receita_total"]
+    .sum()
+    .reset_index()
+)
+
+# Organizar os dados para o mapa de calor
+tabela_calor = receita_categoria_produto.pivot(
+    index="produto",
+    columns="categoria",
+    values="receita_total"
+)
+
+# Criar o mapa de calor
+fig, ax = plt.subplots(figsize=(10, 6))
+
+sns.heatmap(
+    tabela_calor,
+    annot=True,
+    fmt=".2f",
+    cmap="YlOrRd",
+    linewidths=0.5,
+    linecolor="white",
+    mask=tabela_calor.isna(),
+    cbar_kws={"label": "Receita total (R$)"},
+    ax=ax
+)
+
+ax.set_title("Mapa de Calor da Receita Total por Produto e Categoria")
+ax.set_xlabel("Categoria")
+ax.set_ylabel("Produto")
+
+fig.tight_layout()
+fig.savefig(
+    "outputs/graficos/mapa_calor_receita_produto_categoria.png",
+    dpi=150,
+    bbox_inches="tight"
+)
+
+plt.show()
+plt.close(fig)
