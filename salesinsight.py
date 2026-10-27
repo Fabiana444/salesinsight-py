@@ -964,3 +964,61 @@ print("Arquivo existe:", os.path.exists(caminho_grafico))
 
 if os.path.exists(caminho_grafico):
     display(Image(filename=caminho_grafico))
+
+
+# ============================================================
+# GRÁFICO EXTRA 2 - RECEITA POR CATEGORIA E PRODUTO
+# ============================================================
+
+# Associar cada produto à sua categoria
+df_top_categoria = metricas["top_produtos"].merge(
+    df_rf04[["produto", "categoria"]].drop_duplicates(),
+    on="produto",
+    how="left"
+)
+
+# Criar a figura
+fig, ax = plt.subplots(figsize=(12, 6))
+
+# Criar o gráfico de barras por produto e categoria
+sns.barplot(
+    data=df_top_categoria,
+    x="produto",
+    y="receita_total",
+    hue="categoria",
+    palette={
+        "Computadores": "tab:pink",
+        "Celulares": "tab:cyan",
+        "Perifericos": "tab:purple"
+    },
+    ax=ax
+)
+
+# Definir título e rótulos dos eixos
+ax.set_title("Receita por Categoria e Produto")
+ax.set_xlabel("Produto")
+ax.set_ylabel("Receita Total (R$)")
+
+# Formatar os valores do eixo vertical
+ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.2f}"))
+
+# Exibir os valores sobre as barras
+for container in ax.containers:
+    ax.bar_label(container, fmt="%.2f", padding=3, fontsize=9)
+
+# Exibir a legenda
+ax.legend(title="Categoria")
+
+# Ajustar o layout
+plt.tight_layout()
+
+# Salvar o gráfico
+caminho_grafico = "outputs/graficos/receita_categoria_produtos.png"
+plt.savefig(caminho_grafico, dpi=150)
+plt.close()
+
+# Verificar se o arquivo foi gerado e exibir o gráfico
+print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+if os.path.exists(caminho_grafico):
+    display(Image(filename=caminho_grafico))
