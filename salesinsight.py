@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import random
+import json
+import os
 from datetime import datetime, timedelta
 
 
@@ -84,7 +86,15 @@ def gerar_salvar_exibir_dataset(n_registros=200, seed=42):
     return df_bruto
 
 # Executar a geração do dataset
-df_bruto = gerar_salvar_exibir_dataset()
+import os
+
+caminho_csv = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendas.csv")
+
+if os.path.exists(caminho_csv):
+    df_bruto = pd.read_csv(caminho_csv)
+    print("Dataset original carregado.")
+else:
+    df_bruto = gerar_salvar_exibir_dataset()
 
 
 def inspecionar_dados(df):
@@ -125,20 +135,14 @@ def tratar_dados(df):
         texto_original = df[coluna]
         texto_limpo = df_limpo[coluna].str.strip()
 
-        diferencas = (
-            texto_original.ne(texto_limpo)
-            & ~(texto_original.isna() & texto_limpo.isna())
-        ).fillna(False)
-
+        diferencas = (texto_original.ne(texto_limpo) & ~(texto_original.isna() & texto_limpo.isna())).fillna(False)
         textos_alterados |= diferencas
         df_limpo[coluna] = texto_limpo
 
     registros_com_texto_alterado = int(textos_alterados.sum())
 
     # 2. Converter as datas e remover as inválidas
-    datas_convertidas = pd.to_datetime(
-        df_limpo["data_venda"], errors="coerce"
-    )
+    datas_convertidas = pd.to_datetime(df_limpo["data_venda"], errors="coerce")
 
     datas_validas = int(datas_convertidas.notna().sum())
     datas_invalidas = int(datas_convertidas.isna().sum())
@@ -148,9 +152,7 @@ def tratar_dados(df):
 
     # 3. Ajustar os tipos numéricos
     df_limpo["quantidade"] = df_limpo["quantidade"].astype(int)
-    df_limpo["preco_unitario"] = (
-        df_limpo["preco_unitario"].astype(float)
-    )
+    df_limpo["preco_unitario"] = (df_limpo["preco_unitario"].astype(float))
 
     # Contar conversões de tipo por motivo
     conversao_data = (
@@ -1600,3 +1602,225 @@ def criar_mapa_calor_receita_produto_categoria(df_rf04):
 
 # Executar o gráfico bônus B04
 caminho_grafico = criar_mapa_calor_receita_produto_categoria(df_rf04)
+
+
+# ============================================================
+# RF09 - Exportar Resultados em CSV e JSON
+# ============================================================
+
+def exportar_resultados(metricas, clientes, estatisticas):
+    """Exporta os resultados do projeto em CSV e JSON."""
+
+    from decimal import Decimal, ROUND_DOWN
+
+    pasta_projeto = os.path.dirname(os.path.abspath(__file__))
+    pasta_outputs = os.path.join(pasta_projeto, "outputs")
+    os.makedirs(pasta_outputs, exist_ok=True)
+
+    # Preparar cópias dos DataFrames para exportação
+    metricas_exportacao = metricas["por_mes"].copy()
+    clientes_exportacao = clientes.copy()
+
+    # Identificar as colunas que contêm valores monetários
+    termos_monetarios = (
+        "receita",
+        "preco",
+        "preço",
+        "ticket",
+        "gasto",
+        "faturamento",
+        "valor"
+    )
+
+    # Formatar os valores monetários para visualização, sem arredondar
+    def formatar_valor_monetario(valor):
+        if pd.isna(valor):
+            return ""
+
+        valor_decimal = Decimal(str(valor)).quantize(
+            Decimal("0.01"),
+            rounding=ROUND_DOWN
+        )
+
+        valor_formatado = f"{valor_decimal:,.2f}"
+
+        return (
+            valor_formatado
+            .replace(",", "X")
+            .replace(".", ",")
+            .replace("X", ".")
+        )
+
+    # Exportar métricas por mês
+    colunas_monetarias = [
+        coluna
+        for coluna in metricas_exportacao.columns
+        if any(
+            termo in str(coluna).lower()
+            for termo in termos_monetarios
+        )
+        and pd.api.types.is_numeric_dtype(
+            metricas_exportacao[coluna]
+        )
+    ]
+
+    for coluna in colunas_monetarias:
+        metricas_exportacao[coluna] = (
+            metricas_exportacao[coluna]
+            .apply(formatar_valor_monetario)
+        )
+
+    metricas_exportacao.to_csv(
+        os.path.join(pasta_outputs, "metricas_por_mes.csv"),
+        index=False,
+        encoding="utf-8-sig"
+    )
+
+    # Exportar segmentação de clientes
+    colunas_monetarias = [
+        coluna
+        for coluna in clientes_exportacao.columns
+        if any(
+            termo in str(coluna).lower()
+            for termo in termos_monetarios
+        )
+        and pd.api.types.is_numeric_dtype(
+            clientes_exportacao[coluna]
+        )
+    ]
+
+    for coluna in colunas_monetarias:
+        clientes_exportacao[coluna] = (
+            clientes_exportacao[coluna]
+            .apply(formatar_valor_monetario)
+        )
+
+    clientes_exportacao.to_csv(
+        os.path.join(pasta_outputs, "segmentacao_clientes.csv"),
+        index=False,
+        encoding="utf-8-sig"
+    )
+
+    # Preparar os valores numéricos para gravação no JSON
+    serializavel = {
+        chave: round(float(valor), 2)
+        for chave, valor in estatisticas.items()
+    }
+
+    caminho = os.path.join(pasta_outputs, "estatisticas_gerais.json")
+
+    # Gravar as estatísticas gerais em JSON
+    with open(caminho, "w", encoding="utf-8") as arquivo:
+        json.dump(
+            serializavel,
+            arquivo,
+            indent=4,
+            ensure_ascii=False
+        )
+
+    # Ler o JSON novamente para confirmar a gravação
+    with open(caminho, "r", encoding="utf-8") as arquivo:
+        estatisticas_lidas = json.load(arquivo)
+
+    # Exibir as estatísticas gerais
+    print("\n=== RF09 - ESTATÍSTICAS GERAIS EXPORTADAS ===")
+
+    for chave, valor in estatisticas_lidas.items():
+        if (
+            "receita_total" in chave
+            or "ticket_medio" in chave
+            or "gasto_medio_cliente" in chave
+        ):
+            valor_formatado = (
+                f"R$ {valor:,.2f}"
+                .replace(",", "X")
+                .replace(".", ",")
+                .replace("X", ".")
+            )
+            print(f"{chave}: {valor_formatado}")
+        else:
+            print(f"{chave}: {valor}")
+
+    return estatisticas_lidas
+
+
+# Preparar as estatísticas gerais
+estatisticas = {}
+
+# 1. Estatísticas gerais do período
+receita_total_periodo = metricas["por_mes"]["receita_total"].sum()
+quantidade_total_vendida = metricas["por_mes"]["quantidade_vendida"].sum()
+total_vendas = metricas["por_mes"]["n_vendas"].sum()
+
+estatisticas["receita_total_periodo"] = receita_total_periodo
+estatisticas["quantidade_total_vendida"] = quantidade_total_vendida
+estatisticas["total_vendas"] = total_vendas
+estatisticas["ticket_medio_geral"] = (
+    receita_total_periodo / total_vendas
+)
+
+# 2. Estatísticas por trimestre
+metricas_por_trimestre = (
+    df_rf04.groupby("trimestre")
+    .agg(
+        receita_total=("receita_total", "sum"),
+        quantidade_vendida=("quantidade", "sum"),
+        n_vendas=("id_venda", "count")
+    )
+    .reset_index()
+)
+
+for _, linha in metricas_por_trimestre.iterrows():
+    trimestre = linha["trimestre"]
+
+    estatisticas[f"total_vendas_{trimestre}"] = linha["n_vendas"]
+
+    estatisticas[f"ticket_medio_{trimestre}"] = (
+        linha["receita_total"] / linha["n_vendas"]
+    )
+
+# 3. Gasto médio por cliente em cada segmento
+gasto_medio_segmento = (
+    clientes_segmentados
+    .groupby("segmento")["total_gasto"]
+    .mean()
+)
+
+for segmento, valor in gasto_medio_segmento.items():
+    estatisticas[f"gasto_medio_cliente_{segmento}"] = valor
+
+# 4. Ticket médio por segmento de cliente e categoria de produto
+df_segmento_categoria = df_rf04.merge(
+    clientes_segmentados[["cliente", "segmento"]],
+    on="cliente",
+    how="left"
+)
+
+metricas_segmento_categoria = (
+    df_segmento_categoria
+    .groupby(["segmento", "categoria"])
+    .agg(
+        receita_total=("receita_total", "sum"),
+        n_vendas=("id_venda", "count")
+    )
+    .reset_index()
+)
+
+metricas_segmento_categoria["ticket_medio"] = (
+    metricas_segmento_categoria["receita_total"]
+    / metricas_segmento_categoria["n_vendas"]
+)
+
+for _, linha in metricas_segmento_categoria.iterrows():
+    segmento = linha["segmento"]
+    categoria = linha["categoria"]
+
+    chave = f"ticket_medio_{segmento}_{categoria}"
+    estatisticas[chave] = linha["ticket_medio"]
+
+# Executar a exportação dos resultados
+estatisticas_lidas = exportar_resultados(
+    metricas,
+    clientes_segmentados,
+    estatisticas
+)
