@@ -70,11 +70,21 @@ def gerar_dataset_vendas(n_registros=200, seed=42):
 
 
 # Gerar e salvar o CSV bruto.
-df_bruto = gerar_dataset_vendas()
-df_bruto.to_csv("vendas.csv", index=False)
+def gerar_salvar_exibir_dataset(n_registros=200, seed=42):
+    """
+    Gera o dataset bruto, salva o arquivo CSV e exibe os primeiros registros.
+    Retorna o DataFrame gerado.
+    """
+    df_bruto = gerar_dataset_vendas(n_registros, seed)
+    df_bruto.to_csv("vendas.csv", index=False)
 
-print(f"Dataset gerado com {len(df_bruto)} registros.")
-print(df_bruto.head())
+    print(f"Dataset gerado com {len(df_bruto)} registros.")
+    print(df_bruto.head())
+
+    return df_bruto
+
+# Executar a geração do dataset
+df_bruto = gerar_salvar_exibir_dataset()
 
 
 def inspecionar_dados(df):
@@ -89,7 +99,9 @@ def inspecionar_dados(df):
 inspecionar_dados(df_bruto)
 
 
+# ============================================================
 # RF03 - Tratar os dados (datetime)
+# ============================================================
 
 def tratar_dados(df):
     """
@@ -225,120 +237,247 @@ def tratar_dados(df):
 df_limpo, relatorio = tratar_dados(df_bruto)
 
 
+# ===============================================================
+# RF04 - Criar Colunas Derivadas com Transformações Condicionais
+# ===============================================================
+
+
 # RF04 - Criar Colunas Derivadas com Transformações Condicionais
 
-# Criar uma cópia do DataFrame limpo para trabalhar no RF04
-df_rf04 = df_limpo.copy()
+def criar_colunas_derivadas(df):
+    """
+    Cria as colunas derivadas do RF04 e organiza o DataFrame.
+    Retorna um DataFrame com as colunas originais e derivadas.
+    """
+    # Criar uma cópia do DataFrame limpo para trabalhar no RF04
+    df_rf04 = df.copy()
 
-# Reiniciar os índices após a remoção de linhas no RF03
-df_rf04 = df_rf04.reset_index(drop=True)
+    # Reiniciar os índices após a remoção de linhas no RF03
+    df_rf04 = df_rf04.reset_index(drop=True)
 
-# 1. Criar a coluna receita_total por operação vetorizada
-df_rf04["receita_total"] = (df_rf04["quantidade"] * df_rf04["preco_unitario"])
+    # 1. Criar a coluna receita_total por operação vetorizada
+    df_rf04["receita_total"] = (
+        df_rf04["quantidade"] * df_rf04["preco_unitario"]
+    )
 
-# 2. Criar a coluna mes(nº mes) extraído da data com .dt.month
-df_rf04["mes"] = df_rf04["data_venda"].dt.month
+    # 2. Criar a coluna mes(nº mes) extraído da data com .dt.month
+    df_rf04["mes"] = df_rf04["data_venda"].dt.month
 
-# 3. Criar a coluna nome do mes em portugues com um dicionário de mapeamento
-meses = {
-    1: "Janeiro",
-    2: "Fevereiro",
-    3: "Março",
-    4: "Abril",
-    5: "Maio",
-    6: "Junho",
-    7: "Julho",
-    8: "Agosto",
-    9: "Setembro",
-    10: "Outubro",
-    11: "Novembro",
-    12: "Dezembro",
-}
+    # 3. Criar a coluna nome do mes em portugues com um dicionário de mapeamento
+    meses = {
+        1: "Janeiro",
+        2: "Fevereiro",
+        3: "Março",
+        4: "Abril",
+        5: "Maio",
+        6: "Junho",
+        7: "Julho",
+        8: "Agosto",
+        9: "Setembro",
+        10: "Outubro",
+        11: "Novembro",
+        12: "Dezembro",
+    }
 
-df_rf04["mes_nome"] = df_rf04["mes"].map(meses)
+    df_rf04["mes_nome"] = df_rf04["mes"].map(meses)
 
-# 4. Criar a coluna trimestre no formato Q1 a Q4, a partir de .dt.quarter
-df_rf04["trimestre"] = ("Q" + df_rf04["data_venda"].dt.quarter.astype(str))
+    # 4. Criar a coluna trimestre no formato Q1 a Q4, a partir de .dt.quarter
+    df_rf04["trimestre"] = (
+        "Q" + df_rf04["data_venda"].dt.quarter.astype(str)
+    )
 
-# 5. Criar a coluna ano extraído da data com .dt.year
-df_rf04["ano"] = df_rf04["data_venda"].dt.year
+    # 5. Criar a coluna ano extraído da data com .dt.year
+    df_rf04["ano"] = df_rf04["data_venda"].dt.year
 
-# 6. Criar a coluna faixa_receita_item com classificação condicional
-condicoes = [
-    df_rf04["receita_total"] < 500,
-    ((df_rf04["receita_total"] >= 500) & (df_rf04["receita_total"] < 5000)),
-    df_rf04["receita_total"] >= 5000,
-]
+    # 6. Criar a coluna faixa_receita_item com classificação condicional
+    condicoes = [
+        df_rf04["receita_total"] < 500,
+        (
+            (df_rf04["receita_total"] >= 500)
+            & (df_rf04["receita_total"] < 5000)
+        ),
+        df_rf04["receita_total"] >= 5000,
+    ]
 
-faixas = ["Baixo Valor", "Medio Valor", "Alto Valor"]
+    faixas = ["Baixo Valor", "Medio Valor", "Alto Valor"]
 
-df_rf04["faixa_receita_item"] = "Nao Classificado"
+    df_rf04["faixa_receita_item"] = "Nao Classificado"
 
-for condicao, faixa in zip(condicoes, faixas):
-    df_rf04.loc[condicao, "faixa_receita_item"] = faixa
+    for condicao, faixa in zip(condicoes, faixas):
+        df_rf04.loc[condicao, "faixa_receita_item"] = faixa
 
-# Organizar as colunas: dados originais e colunas derivadas
-colunas_rf04 = [
-    "id_venda",
-    "data_venda",
-    "cliente",
-    "produto",
-    "categoria",
-    "regiao",
-    "quantidade",
-    "preco_unitario",
-    "receita_total",
-    "mes",
-    "mes_nome",
-    "trimestre",
-    "ano",
-    "faixa_receita_item",
-]
+    # Organizar as colunas: dados originais e colunas derivadas
+    colunas_rf04 = [
+        "id_venda",
+        "data_venda",
+        "cliente",
+        "produto",
+        "categoria",
+        "regiao",
+        "quantidade",
+        "preco_unitario",
+        "receita_total",
+        "mes",
+        "mes_nome",
+        "trimestre",
+        "ano",
+        "faixa_receita_item",
+    ]
 
-df_rf04 = df_rf04[colunas_rf04]
+    df_rf04 = df_rf04[colunas_rf04]
+
+    return df_rf04
+
+
+# Executar o RF04 com o DataFrame limpo do RF03
+df_rf04 = criar_colunas_derivadas(df_limpo)
+
 
 # Exibir os resultados do RF04
-print("\n=== RF04 - COLUNAS DERIVADAS ===")
-print("Dimensões:", df_rf04.shape)
-print("\nColunas:", list(df_rf04.columns))
-print("\nPrimeiros registros:")
-print(df_rf04.head().assign(data_venda=df_rf04["data_venda"].head().dt.strftime("%d-%m-%Y")))
+def exibir_resultados_rf04(df_rf04):
+    """
+    Exibe os resultados das colunas derivadas do RF04.
+    Retorna o DataFrame exibido.
+    """
+    print("\n=== RF04 - COLUNAS DERIVADAS ===")
+    print("Dimensões:", df_rf04.shape)
+    print("\nColunas:", list(df_rf04.columns))
+    print("\nPrimeiros registros:")
+    print(
+        df_rf04.head().assign(
+            data_venda=df_rf04["data_venda"].head().dt.strftime("%d-%m-%Y")
+        )
+    )
 
-print("\nDistribuição das faixas de receita:")
-print(df_rf04["faixa_receita_item"].value_counts())
+    print("\nDistribuição das faixas de receita:")
+    print(df_rf04["faixa_receita_item"].value_counts())
 
-print("\nValores ausentes nas colunas derivadas:")
-print(
-    df_rf04[
-        [
-            "receita_total",
-            "mes",
-            "mes_nome",
-            "trimestre",
-            "ano",
-            "faixa_receita_item",
-        ]
-    ].isnull().sum()
-)
+    print("\nValores ausentes nas colunas derivadas:")
+    print(
+        df_rf04[
+            [
+                "receita_total",
+                "mes",
+                "mes_nome",
+                "trimestre",
+                "ano",
+                "faixa_receita_item",
+            ]
+        ].isnull().sum()
+    )
+
+    return df_rf04
+
+# Executar a exibição dos resultados do RF04
+df_rf04 = exibir_resultados_rf04(df_rf04)
+
+
+# ============================================================
+# RF08 - FUNÇÃO DE ORDEM SUPERIOR
+# ============================================================
+
+def processar_coluna(df, coluna, funcao_transformacao, nome_saida=None):
+    """
+    Aplica uma funcao de transformacao a uma coluna do DataFrame.
+    Demonstra o uso de funcoes como argumento.
+    """
+    nome_saida = nome_saida or f"{coluna}_transformado"
+    df[nome_saida] = df[coluna].apply(funcao_transformacao)
+
+    return df
+
+
+def testar_funcao_ordem_superior(df):
+    """
+    Testa a funcao de ordem superior com duas transformacoes.
+    Retorna o DataFrame com as novas colunas.
+    """
+    df_rf08 = df.copy()
+
+    df_rf08 = processar_coluna(
+        df_rf08,
+        "receita_total",
+        lambda x: round(x / 1000, 2),
+        nome_saida="receita_em_milhares"
+    )
+
+    df_rf08 = processar_coluna(
+        df_rf08,
+        "quantidade",
+        lambda q: "Alto Volume" if q > 5 else "Baixo Volume",
+        nome_saida="perfil_volume"
+    )
+
+    return df_rf08
+
+
+def exibir_teste_funcao_ordem_superior(df):
+    """
+    Exibe os resultados do teste da funcao de ordem superior.
+    Retorna o DataFrame exibido.
+    """
+    print("\n=== RF08 - TESTE DA FUNÇÃO DE ORDEM SUPERIOR ===")
+
+    print(
+        df[
+            [
+                "receita_total",
+                "receita_em_milhares",
+                "quantidade",
+                "perfil_volume"
+            ]
+        ].head(10).to_string(index=False)
+    )
+
+    return df
+
+
+# Executar o teste da função de ordem superior
+
+df_rf08 = testar_funcao_ordem_superior(df_rf04)
+
+df_rf08 = exibir_teste_funcao_ordem_superior(df_rf08)
 
 
 # ============================================================
 # B03 - Tabela cruzada mês x categoria
 # ============================================================
 
-# Agrupar a receita total por mês e categoria
-receita_mes_categoria = df_rf04.groupby(["mes", "mes_nome", "categoria"])["receita_total"].sum().reset_index()
+def criar_tabela_mes_categoria(df):
+    """
+    Calcula e retorna a tabela cruzada de receita total
+    por mês e categoria.
+    """
+    # Agrupar a receita total por mês e categoria
+    receita_mes_categoria = df.groupby(
+        ["mes", "mes_nome", "categoria"]
+    )["receita_total"].sum().reset_index()
 
-# Criar a tabela cruzada
-tabela_mes_categoria = receita_mes_categoria.pivot(
-    index=["mes", "mes_nome"],
-    columns="categoria",
-    values="receita_total"
-)
+    # Criar a tabela cruzada
+    tabela_mes_categoria = receita_mes_categoria.pivot(
+        index=["mes", "mes_nome"],
+        columns="categoria",
+        values="receita_total"
+    )
 
-# Exibir a tabela cruzada
-print("\n=== B03 - RECEITA TOTAL POR MÊS E CATEGORIA ===")
-print(tabela_mes_categoria)
+    return tabela_mes_categoria
+
+
+def exibir_tabela_mes_categoria(tabela_mes_categoria):
+    """
+    Exibe a tabela cruzada de receita total por mês e categoria.
+    """
+    # Exibir a tabela cruzada
+    print("\n=== B03 - RECEITA TOTAL POR MÊS E CATEGORIA ===")
+    print(tabela_mes_categoria)
+
+    return tabela_mes_categoria
+
+
+# Executar a tabela cruzada B03
+tabela_mes_categoria = criar_tabela_mes_categoria(df_rf04)
+tabela_mes_categoria = exibir_tabela_mes_categoria(tabela_mes_categoria)
+
 
 
 # ============================================================
@@ -394,114 +533,114 @@ metricas = calcular_metricas(df_rf04)
 
 
 # Exibir os resultados de Métricas Agregadas com groupby
-print("\n=== MÉTRICAS POR MÊS ===")
-print(metricas["por_mes"].to_string(index=False, formatters={
-    "receita_total": lambda valor: f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-}))
+def exibir_metricas(metricas):
+    """
+    Exibe os resultados das métricas agregadas com groupby.
+    Retorna as métricas exibidas.
+    """
+    print("\n=== MÉTRICAS POR MÊS ===")
+    print(metricas["por_mes"].to_string(index=False, formatters={
+        "receita_total": lambda valor: f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    }))
 
-print("\n=== TOP 5 PRODUTOS ===")
-print(metricas["top_produtos"].to_string(index=False, formatters={
-    "receita_total": lambda valor: f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-}))
+    print("\n=== TOP 5 PRODUTOS ===")
+    print(metricas["top_produtos"].to_string(index=False, formatters={
+        "receita_total": lambda valor: f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    }))
 
-print("\n=== MÉTRICAS POR CATEGORIA ===")
-print(metricas["por_categoria"].to_string(index=False, formatters={
-    "receita_total": lambda valor: f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-}))
+    print("\n=== MÉTRICAS POR CATEGORIA ===")
+    print(metricas["por_categoria"].to_string(index=False, formatters={
+        "receita_total": lambda valor: f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    }))
 
-print("\n=== MÉTRICAS POR REGIÃO ===")
-print(metricas["por_regiao"].to_string(index=False, formatters={
-    "receita_total": lambda valor: f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
-    "ticket_medio": lambda valor: f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-}))
+    print("\n=== MÉTRICAS POR REGIÃO ===")
+    print(metricas["por_regiao"].to_string(index=False, formatters={
+        "receita_total": lambda valor: f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
+        "ticket_medio": lambda valor: f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    }))
+
+    return metricas
+
+
+# Executar a exibição das métricas
+metricas = exibir_metricas(metricas)
 
 
 # ============================================================
 # EXTRA 2 - ANALISAR VENDAS POR DIA DA SEMANA
 # ============================================================
 
-# Criar uma cópia do DataFrame do RF04
-df_extra2 = df_rf04.copy()
+def analisar_vendas_por_dia_semana(df):
+    """
+    Analisa as vendas por dia da semana.
+    Retorna o DataFrame com as novas colunas e o resumo das vendas.
+    """
+    # Criar uma cópia do DataFrame
+    df_extra2 = df.copy()
 
-# Criar a coluna com o nome do dia da semana
-dias_semana = {
-    0: "Segunda-feira",
-    1: "Terça-feira",
-    2: "Quarta-feira",
-    3: "Quinta-feira",
-    4: "Sexta-feira",
-    5: "Sábado",
-    6: "Domingo"
-}
+    # Identificar o dia da semana
+    df_extra2["dia_semana"] = df_extra2["data_venda"].dt.day_name()
 
-df_extra2["dia_semana"] = df_extra2["data_venda"].dt.dayofweek.map(dias_semana)
+    # Traduzir os nomes dos dias da semana para português
+    dias_semana = {
+        "Monday": "Segunda-feira",
+        "Tuesday": "Terça-feira",
+        "Wednesday": "Quarta-feira",
+        "Thursday": "Quinta-feira",
+        "Friday": "Sexta-feira",
+        "Saturday": "Sábado",
+        "Sunday": "Domingo"
+    }
 
-# Identificar vendas realizadas no fim de semana
-df_extra2["fim_de_semana"] = df_extra2["data_venda"].dt.dayofweek >= 5
+    df_extra2["dia_semana"] = df_extra2["dia_semana"].map(dias_semana)
 
-# Ordenar as vendas da data mais recente para a mais antiga
-df_extra2 = df_extra2.sort_values("data_venda", ascending=False)
+    # Identificar se a venda ocorreu no fim de semana
+    df_extra2["fim_de_semana"] = df_extra2["data_venda"].dt.dayofweek >= 5
 
-# Exibir as novas colunas
-print("\n\n=== DIAS DA SEMANA E FIM DE SEMANA ===")
-print(
-    df_extra2[["data_venda", "dia_semana", "fim_de_semana"]]
-    .head(10)
-    .to_string(
-        index=False,
-        formatters={
-            "data_venda": lambda data: data.strftime("%d-%m-%Y")
-        }
-    )
-)
+    # Agrupar as vendas por dia da semana
+    vendas_por_dia = df_extra2.groupby("dia_semana").agg(
+        quantidade_vendas=("id_venda", "count"),
+        receita_total=("receita_total", "sum")).reset_index()
 
-# Conferir os tipos de dados
-print("\n=== TIPOS DE DADOS DAS NOVAS COLUNAS ===")
-print(df_extra2[["dia_semana", "fim_de_semana"]].dtypes)
+    # Identificar o dia com maior e menor quantidade de vendas
+    maior_fluxo = vendas_por_dia.loc[vendas_por_dia["quantidade_vendas"].idxmax()]
 
-# Definir a ordem dos dias da semana para a análise
-ordem_dias = [
-    "Domingo",
-    "Segunda-feira",
-    "Terça-feira",
-    "Quarta-feira",
-    "Quinta-feira",
-    "Sexta-feira",
-    "Sábado"
-]
+    menor_fluxo = vendas_por_dia.loc[vendas_por_dia["quantidade_vendas"].idxmin()]
 
-# Calcular a quantidade de vendas por dia da semana
-vendas_por_dia = (
-    df_extra2.groupby("dia_semana")
-    .size()
-    .reindex(ordem_dias, fill_value=0)
-    .rename_axis("dia_semana")
-    .reset_index(name="quantidade_vendas")
-)
+    return df_extra2, vendas_por_dia, maior_fluxo, menor_fluxo
 
-# Identificar os dias com maior e menor fluxo de vendas
-maior_fluxo = vendas_por_dia["quantidade_vendas"].max()
-menor_fluxo = vendas_por_dia["quantidade_vendas"].min()
 
-# Exibir a quantidade de vendas por dia da semana
-print("\n=== QUANTIDADE DE VENDAS POR DIA DA SEMANA ===")
-print(vendas_por_dia.to_string(index=False))
+def exibir_analise_vendas_por_dia_semana(df_extra2, vendas_por_dia, maior_fluxo, menor_fluxo):
+    """
+    Exibe os resultados da análise de vendas por dia da semana.
+    Retorna a tabela de vendas por dia.
+    """
+    # Exibir as novas colunas
+    print("\n=== DIAS DA SEMANA E FIM DE SEMANA ===")
+    print(df_extra2[["data_venda", "dia_semana", "fim_de_semana"]].head(10))
 
-# Exibir os dias com maior fluxo de vendas
-print("\n=== DIAS COM MAIOR FLUXO DE VENDAS ===")
-print(
-    vendas_por_dia[
-        vendas_por_dia["quantidade_vendas"] == maior_fluxo
-    ].to_string(index=False)
-)
+    # Conferir os tipos de dados
+    print(df_extra2[["dia_semana", "fim_de_semana"]].dtypes)
 
-# Exibir os dias com menor fluxo de vendas
-print("\n=== DIAS COM MENOR FLUXO DE VENDAS ===")
-print(
-    vendas_por_dia[
-        vendas_por_dia["quantidade_vendas"] == menor_fluxo
-    ].to_string(index=False)
-)
+    # Exibir as vendas por dia da semana
+    print("\n=== VENDAS POR DIA DA SEMANA ===")
+    print(vendas_por_dia)
+
+    # Exibir o dia com maior quantidade de vendas
+    print("\n=== DIA COM MAIOR QUANTIDADE DE VENDAS ===")
+    print(maior_fluxo)
+
+    # Exibir o dia com menor quantidade de vendas
+    print("\n=== DIA COM MENOR QUANTIDADE DE VENDAS ===")
+    print(menor_fluxo)
+
+    return vendas_por_dia
+
+
+# Executar a análise de vendas por dia da semana
+df_extra2, vendas_por_dia, maior_fluxo, menor_fluxo = (analisar_vendas_por_dia_semana(df_rf04))
+
+vendas_por_dia = exibir_analise_vendas_por_dia_semana(df_extra2, vendas_por_dia, maior_fluxo, menor_fluxo)
 
 
 # ============================================================
@@ -529,26 +668,35 @@ def segmentar_clientes(df):
 # Segmentar clientes
 clientes_segmentados = segmentar_clientes(df_rf04)
 
-# Exibir os 10 maiores clientes
-print("\n\n=== RF06 - 10 MAIORES CLIENTES ===")
-print(
-    clientes_segmentados
-    .sort_values("total_gasto", ascending=False)
-    .head(10)
-    .to_string(index=False)
-)
 
-# Exibir a distribuição de clientes por segmento
-print("\n=== RF06 - DISTRIBUIÇÃO DE CLIENTES POR SEGMENTO ===")
-print(clientes_segmentados["segmento"].value_counts())
+# Exibir os resultados da segmentação de clientes
+def exibir_segmentacao_clientes(clientes_segmentados):
+    """
+    Exibe os 10 maiores clientes e a distribuição por segmento.
+    Retorna o DataFrame de clientes segmentados.
+    """
+    # Exibir os 10 maiores clientes
+    print("\n\n=== RF06 - 10 MAIORES CLIENTES ===")
+    print(
+        clientes_segmentados
+        .sort_values("total_gasto", ascending=False)
+        .head(10)
+        .to_string(index=False)
+    )
+
+    # Exibir a distribuição de clientes por segmento
+    print("\n=== RF06 - DISTRIBUIÇÃO DE CLIENTES POR SEGMENTO ===")
+    print(clientes_segmentados["segmento"].value_counts())
+
+    return clientes_segmentados
+
+
+# Executar a exibição da segmentação de clientes
+clientes_segmentados = exibir_segmentacao_clientes(clientes_segmentados)
 
 
 # ============================================================
 # RF07 - CRIAR VISUALIZAÇÕES COM MATPLOTLIB
-# ============================================================
-
-# ============================================================
-# --- Figura 1: Receita total por mês ao longo do período ---
 # ============================================================
 
 import matplotlib.pyplot as plt
@@ -566,727 +714,889 @@ plt.rcParams["axes.titlesize"] = 14
 os.makedirs("outputs/graficos", exist_ok=True)
 
 # --- Figura 1: Receita total por mês ---
-fig, ax = plt.subplots(figsize=(12, 6))
-ax.plot(metricas["por_mes"]["mes"], metricas["por_mes"]["receita_total"], marker="o", markersize=7, linewidth=2.5, color="tab:pink", markerfacecolor="tab:cyan", markeredgecolor="white", label="Receita total")
-ax.set_title("Receita Total por Mês")
-ax.set_xlabel("Mês")
-ax.set_ylabel("Receita Total (R$)")
-ax.legend()
-plt.tight_layout()
-plt.savefig("outputs/graficos/receita_por_mes.png", dpi=150)
-plt.close()
+def criar_grafico_receita_por_mes(metricas):
+    """
+    Cria e salva o gráfico de receita total por mês.
+    Retorna o caminho do arquivo gerado.
+    """
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(metricas["por_mes"]["mes"], metricas["por_mes"]["receita_total"], marker="o", markersize=7, linewidth=2.5, color="tab:pink", markerfacecolor="tab:cyan", markeredgecolor="white", label="Receita total")
+    ax.set_title("Receita Total por Mês")
+    ax.set_xlabel("Mês")
+    ax.set_ylabel("Receita Total (R$)")
+    ax.legend()
+    plt.tight_layout()
 
-# Exibir o gráfico exportado
-caminho_grafico = "outputs/graficos/receita_por_mes.png"
-print("Arquivo existe:", os.path.exists(caminho_grafico))
+    caminho_grafico = "outputs/graficos/receita_por_mes.png"
+    plt.savefig(caminho_grafico, dpi=150)
+    plt.show()
+    plt.close()
 
-if os.path.exists(caminho_grafico):
-    display(Image(filename=caminho_grafico))
+    # Exibir o gráfico exportado
+    print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+    if os.path.exists(caminho_grafico):
+        display(Image(filename=caminho_grafico))
+
+    return caminho_grafico
+
+
+# Executar a Figura 1
+caminho_grafico = criar_grafico_receita_por_mes(metricas)
+
 
 
 # ============================================================
 # --- Figura 2: Top 5 produtos por receita ---
 # ============================================================
 
-fig, ax = plt.subplots(figsize=(12, 6))
+def criar_grafico_top_produtos(metricas):
+    """
+    Cria e salva o gráfico dos top 5 produtos por receita.
+    Retorna o caminho do arquivo gerado.
+    """
+    fig, ax = plt.subplots(figsize=(12, 6))
 
-sns.barplot(
-    data=metricas["top_produtos"],
-    y="produto",
-    x="receita_total",
-    hue="produto",
-    legend=False,
-    palette=["tab:pink", "tab:cyan", "tab:purple", "tab:orange", "tab:red"],
-    ax=ax
-)
+    sns.barplot(
+        data=metricas["top_produtos"],
+        y="produto",
+        x="receita_total",
+        hue="produto",
+        legend=False,
+        palette=["tab:pink", "tab:cyan", "tab:purple", "tab:orange", "tab:red"],
+        ax=ax
+    )
 
-ax.set_title("Top 5 Produtos por Receita")
-ax.set_xlabel("Receita Total (R$)")
-ax.set_ylabel("Produto")
+    ax.set_title("Top 5 Produtos por Receita")
+    ax.set_xlabel("Receita Total (R$)")
+    ax.set_ylabel("Produto")
 
-# Formatar os valores do eixo X com duas casas decimais
-ax.xaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.2f}"))
+    # Formatar os valores do eixo X com duas casas decimais
+    ax.xaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.2f}"))
 
-plt.tight_layout()
+    plt.tight_layout()
 
-# Salvar o gráfico
-caminho_grafico = "outputs/graficos/top_produtos.png"
-plt.savefig(caminho_grafico, dpi=150)
-plt.close()
+    # Salvar o gráfico
+    caminho_grafico = "outputs/graficos/top_produtos.png"
+    plt.savefig(caminho_grafico, dpi=150)
+    plt.show()
+    plt.close()
 
-# Exibir o gráfico exportado
-import os
-from IPython.display import display, Image
+    # Exibir o gráfico exportado
+    print("Arquivo existe:", os.path.exists(caminho_grafico))
 
-print("Arquivo existe:", os.path.exists(caminho_grafico))
+    if os.path.exists(caminho_grafico):
+        display(Image(filename=caminho_grafico))
 
-if os.path.exists(caminho_grafico):
-    display(Image(filename=caminho_grafico))
+    return caminho_grafico
+
+
+# Executar a Figura 2
+caminho_grafico = criar_grafico_top_produtos(metricas)
 
 
 # ============================================================
 # --- Figura 3: Quantidade x Receita por Categoria ---
 # ============================================================
- 
-fig, ax = plt.subplots(figsize=(12, 6))
 
-# Criar o gráfico de dispersão, colorido por categoria
-sns.scatterplot(
-    data=df_rf04,
-    x="quantidade",
-    y="receita_total",
-    hue="categoria",
-    palette={
-        "Computadores": "tab:pink",
-        "Celulares": "tab:cyan",
-        "Perifericos": "tab:purple"
-    },
-    ax=ax
-)
+def criar_grafico_quantidade_vs_receita(df_rf04):
+    """
+    Cria e salva o gráfico de quantidade versus receita por categoria.
+    Retorna o caminho do arquivo gerado.
+    """
 
-# Configurar título e eixos
-ax.set_title("Quantidade versus Receita por Categoria")
-ax.set_xlabel("Quantidade")
-ax.set_ylabel("Receita Total (R$)")
+    fig, ax = plt.subplots(figsize=(12, 6))
 
-# Formatar os valores do eixo Y com duas casas decimais
-ax.yaxis.set_major_formatter(
-    ticker.StrMethodFormatter("{x:,.2f}")
-)
+    # Criar o gráfico de dispersão, colorido por categoria
+    sns.scatterplot(
+        data=df_rf04,
+        x="quantidade",
+        y="receita_total",
+        hue="categoria",
+        palette={
+            "Computadores": "tab:pink",
+            "Celulares": "tab:cyan",
+            "Perifericos": "tab:purple"
+        },
+        ax=ax
+    )
 
-# Exibir a legenda das categorias
-ax.legend(title="Categoria")
+    # Configurar título e eixos
+    ax.set_title("Quantidade versus Receita por Categoria")
+    ax.set_xlabel("Quantidade")
+    ax.set_ylabel("Receita Total (R$)")
 
-# Ajustar o layout
-plt.tight_layout()
+    # Formatar os valores do eixo Y com duas casas decimais
+    ax.yaxis.set_major_formatter(
+        ticker.StrMethodFormatter("{x:,.2f}")
+    )
 
-# Salvar o gráfico
-caminho_grafico = "outputs/graficos/quantidade_vs_receita.png"
-plt.savefig(caminho_grafico, dpi=150)
-plt.close()
+    # Exibir a legenda das categorias
+    ax.legend(title="Categoria")
 
-# Verificar se o arquivo foi criado e exibir o gráfico exportado
-print("Arquivo existe:", os.path.exists(caminho_grafico))
+    # Ajustar o layout
+    plt.tight_layout()
 
-if os.path.exists(caminho_grafico):
-    display(Image(filename=caminho_grafico))
+    # Salvar o gráfico
+    caminho_grafico = "outputs/graficos/quantidade_vs_receita.png"
+    plt.savefig(caminho_grafico, dpi=150)
+    plt.show()
+    plt.close()
+
+    # Verificar se o arquivo foi criado e exibir o gráfico exportado
+    print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+    if os.path.exists(caminho_grafico):
+        display(Image(filename=caminho_grafico))
+
+    return caminho_grafico
+
+
+# Executar a Figura 3
+caminho_grafico = criar_grafico_quantidade_vs_receita(df_rf04)
 
 
 # ============================================================
 # --- Gráfico Receita Total por Região ---
 # ============================================================
 
-# Ordenar as regiões pela receita total
-df_regiao = metricas["por_regiao"].sort_values(
-    by="receita_total",
-    ascending=True
-)
+def criar_grafico_receita_por_regiao(metricas):
+    """
+    Cria e salva o gráfico de receita total por região.
+    Retorna o caminho do arquivo gerado.
+    """
 
-fig, ax = plt.subplots(figsize=(12, 6))
-
-ax.barh(
-    df_regiao["regiao"],
-    df_regiao["receita_total"],
-    color=[
-        "tab:green",
-        "tab:orange",
-        "tab:purple",
-        "tab:cyan",
-        "tab:pink"
-    ],
-    height=0.6
-)
-
-ax.set_title("Receita Total por Região")
-ax.set_xlabel("Receita Total (R$)")
-ax.set_ylabel("Região")
-
-# Configurar a escala do eixo horizontal
-ax.set_xlim(0, 400000)
-ax.xaxis.set_major_locator(ticker.MultipleLocator(50000))
-ax.xaxis.set_major_formatter(
-    ticker.StrMethodFormatter("{x:,.0f}")
-)
-
-# Exibir os valores reais ao lado das barras
-for container in ax.containers:
-    ax.bar_label(
-        container,
-        labels=[
-            f"R$ {valor:,.2f}"
-            for valor in container.datavalues
-        ],
-        padding=5,
-        fontsize=9
+    # Ordenar as regiões pela receita total
+    df_regiao = metricas["por_regiao"].sort_values(
+        by="receita_total",
+        ascending=True
     )
 
-plt.tight_layout()
+    fig, ax = plt.subplots(figsize=(12, 6))
 
-# Salvar o gráfico
-caminho_grafico = "outputs/graficos/receita_por_regiao.png"
-plt.savefig(caminho_grafico, dpi=150)
-plt.close()
+    ax.barh(
+        df_regiao["regiao"],
+        df_regiao["receita_total"],
+        color=[
+            "tab:green",
+            "tab:orange",
+            "tab:purple",
+            "tab:cyan",
+            "tab:pink"
+        ],
+        height=0.6
+    )
 
-# Verificar se o arquivo foi gerado e exibir o gráfico
-print("Arquivo existe:", os.path.exists(caminho_grafico))
+    ax.set_title("Receita Total por Região")
+    ax.set_xlabel("Receita Total (R$)")
+    ax.set_ylabel("Região")
 
-if os.path.exists(caminho_grafico):
-    display(Image(filename=caminho_grafico))
+    # Configurar a escala do eixo horizontal
+    ax.set_xlim(0, 400000)
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(50000))
+    ax.xaxis.set_major_formatter(
+        ticker.StrMethodFormatter("{x:,.0f}")
+    )
 
+    # Exibir os valores reais ao lado das barras
+    for container in ax.containers:
+        ax.bar_label(
+            container,
+            labels=[
+                f"R$ {valor:,.2f}"
+                for valor in container.datavalues
+            ],
+            padding=5,
+            fontsize=9
+        )
+
+    plt.tight_layout()
+
+    # Salvar o gráfico
+    caminho_grafico = "outputs/graficos/receita_por_regiao.png"
+    plt.savefig(caminho_grafico, dpi=150)
+    plt.show()
+    plt.close()
+
+    # Verificar se o arquivo foi gerado e exibir o gráfico
+    print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+    if os.path.exists(caminho_grafico):
+        display(Image(filename=caminho_grafico))
+
+    return caminho_grafico
+
+
+# Executar o gráfico de receita total por região
+caminho_grafico = criar_grafico_receita_por_regiao(metricas)
 
 
 # ============================================================
 # --- Figura 4: Painel Resumo ---
 # ============================================================
-  
-# Criar a figura com quatro gráficos (2 linhas e 2 colunas)
-fig, axes = plt.subplots(2, 2, figsize=(16, 10))
 
-# Gráfico 1: Receita total por mês
-axes[0, 0].plot(
-    metricas["por_mes"]["mes"],
-    metricas["por_mes"]["receita_total"],
-    marker="o",
-    linewidth=2,
-    color="tab:pink",
-    label="Receita total"
-)
+def criar_painel_resumo(metricas, df_rf04):
+    """
+    Cria e salva o painel resumo com quatro gráficos.
+    Retorna o caminho do arquivo gerado.
+    """
 
-axes[0, 0].set_title("Receita Total por Mês")
-axes[0, 0].set_xlabel("Mês")
-axes[0, 0].set_ylabel("Receita Total (R$)")
-axes[0, 0].yaxis.set_major_formatter(
-    ticker.StrMethodFormatter("{x:,.0f}")
-)
-axes[0, 0].legend()
+    # Criar a figura com quatro gráficos (2 linhas e 2 colunas)
+    fig, axes = plt.subplots(2, 2, figsize=(14, 8))
 
-# Gráfico 2: Top 5 produtos por receita
-sns.barplot(
-    data=metricas["top_produtos"],
-    y="produto",
-    x="receita_total",
-    hue="produto",
-    legend=False,
-    palette={
-        "Notebook": "tab:pink",
-        "Smartphone": "tab:cyan",
-        "Tablet": "tab:purple",
-        "Monitor": "tab:orange",
-        "Headset": "tab:red"
-    },
-    ax=axes[0, 1]
-)
-
-axes[0, 1].set_title("Top 5 Produtos por Receita")
-axes[0, 1].set_xlabel("Receita Total (R$)")
-axes[0, 1].set_ylabel("Produto")
-axes[0, 1].xaxis.set_major_formatter(
-    ticker.StrMethodFormatter("{x:,.0f}")
-)
-
-# Gráfico 3: Quantidade versus receita por categoria
-sns.scatterplot(
-    data=df_rf04,
-    x="quantidade",
-    y="receita_total",
-    hue="categoria",
-    palette={
-        "Computadores": "tab:pink",
-        "Celulares": "tab:cyan",
-        "Perifericos": "tab:purple"
-    },
-    ax=axes[1, 0]
-)
-
-axes[1, 0].set_title("Quantidade versus Receita por Categoria")
-axes[1, 0].set_xlabel("Quantidade")
-axes[1, 0].set_ylabel("Receita Total (R$)")
-axes[1, 0].yaxis.set_major_formatter(
-    ticker.StrMethodFormatter("{x:,.0f}")
-)
-axes[1, 0].legend(title="Categoria")
-
-# Gráfico 4: Receita total por região (barras horizontais)
-df_regiao = metricas["por_regiao"].sort_values(
-    by="receita_total",
-    ascending=True
-)
-
-cores_regiao = {
-    "Centro-Oeste": "tab:pink",
-    "Norte": "tab:cyan",
-    "Nordeste": "tab:purple",
-    "Sudeste": "tab:orange",
-    "Sul": "tab:green"
-}
-
-axes[1, 1].barh(
-    df_regiao["regiao"],
-    df_regiao["receita_total"],
-    color=[
-        cores_regiao[regiao]
-        for regiao in df_regiao["regiao"]
-    ],
-    height=0.6
-)
-
-axes[1, 1].set_title("Receita Total por Região")
-axes[1, 1].set_xlabel("Receita Total (R$)")
-axes[1, 1].set_ylabel("Região")
-
-# Reservar espaço à direita para os valores das barras
-axes[1, 1].set_xlim(0, 460000)
-
-axes[1, 1].xaxis.set_major_locator(
-    ticker.MultipleLocator(100000)
-)
-axes[1, 1].xaxis.set_major_formatter(
-    ticker.StrMethodFormatter("{x:,.0f}")
-)
-
-# Exibir os valores reais ao lado das barras
-for container in axes[1, 1].containers:
-    axes[1, 1].bar_label(
-        container,
-        labels=[
-            f"R$ {valor:,.2f}"
-            for valor in container.datavalues
-        ],
-        padding=4,
-        fontsize=9
+    # Gráfico 1: Receita total por mês
+    axes[0, 0].plot(
+        metricas["por_mes"]["mes"],
+        metricas["por_mes"]["receita_total"],
+        marker="o",
+        linewidth=2,
+        color="tab:pink",
+        label="Receita total"
     )
 
-# Título geral do painel
-fig.suptitle("SalesInsight PY - Painel Resumo", fontsize=16)
+    axes[0, 0].set_title("Receita Total por Mês")
+    axes[0, 0].set_xlabel("Mês")
+    axes[0, 0].set_ylabel("Receita Total (R$)")
+    axes[0, 0].yaxis.set_major_formatter(
+        ticker.StrMethodFormatter("{x:,.0f}")
+    )
+    axes[0, 0].legend()
 
-# Ajustar o layout para acomodar o título geral
-plt.tight_layout(rect=[0, 0, 1, 0.95])
+    # Gráfico 2: Top 5 produtos por receita
+    sns.barplot(
+        data=metricas["top_produtos"],
+        y="produto",
+        x="receita_total",
+        hue="produto",
+        legend=False,
+        palette={
+            "Notebook": "tab:pink",
+            "Smartphone": "tab:cyan",
+            "Tablet": "tab:purple",
+            "Monitor": "tab:orange",
+            "Headset": "tab:red"
+        },
+        ax=axes[0, 1]
+    )
 
-# Salvar o painel
-caminho_grafico = "outputs/graficos/painel_resumo.png"
-plt.savefig(caminho_grafico, dpi=150, bbox_inches="tight")
-plt.close()
+    axes[0, 1].set_title("Top 5 Produtos por Receita")
+    axes[0, 1].set_xlabel("Receita Total (R$)")
+    axes[0, 1].set_ylabel("Produto")
+    axes[0, 1].xaxis.set_major_formatter(
+        ticker.StrMethodFormatter("{x:,.0f}")
+    )
 
-# Verificar se o arquivo foi criado e exibir a imagem exportada
-print("Arquivo existe:", os.path.exists(caminho_grafico))
+    # Gráfico 3: Quantidade versus receita por categoria
+    sns.scatterplot(
+        data=df_rf04,
+        x="quantidade",
+        y="receita_total",
+        hue="categoria",
+        palette={
+            "Computadores": "tab:pink",
+            "Celulares": "tab:cyan",
+            "Perifericos": "tab:purple"
+        },
+        ax=axes[1, 0]
+    )
 
-if os.path.exists(caminho_grafico):
-    display(Image(filename=caminho_grafico))
+    axes[1, 0].set_title("Quantidade versus Receita por Categoria")
+    axes[1, 0].set_xlabel("Quantidade")
+    axes[1, 0].set_ylabel("Receita Total (R$)")
+    axes[1, 0].yaxis.set_major_formatter(
+        ticker.StrMethodFormatter("{x:,.0f}")
+    )
+    axes[1, 0].legend(title="Categoria")
+
+    # Gráfico 4: Receita total por região (barras horizontais)
+    df_regiao = metricas["por_regiao"].sort_values(
+        by="receita_total",
+        ascending=True
+    )
+
+    cores_regiao = {
+        "Centro-Oeste": "tab:pink",
+        "Norte": "tab:cyan",
+        "Nordeste": "tab:purple",
+        "Sudeste": "tab:orange",
+        "Sul": "tab:green"
+    }
+
+    axes[1, 1].barh(
+        df_regiao["regiao"],
+        df_regiao["receita_total"],
+        color=[
+            cores_regiao[regiao]
+            for regiao in df_regiao["regiao"]
+        ],
+        height=0.6
+    )
+
+    axes[1, 1].set_title("Receita Total por Região")
+    axes[1, 1].set_xlabel("Receita Total (R$)")
+    axes[1, 1].set_ylabel("Região")
+
+    # Reservar espaço à direita para os valores das barras
+    axes[1, 1].set_xlim(0, 460000)
+
+    axes[1, 1].xaxis.set_major_locator(
+        ticker.MultipleLocator(100000)
+    )
+    axes[1, 1].xaxis.set_major_formatter(
+        ticker.StrMethodFormatter("{x:,.0f}")
+    )
+
+    # Exibir os valores reais ao lado das barras
+    for container in axes[1, 1].containers:
+        axes[1, 1].bar_label(
+            container,
+            labels=[
+                f"R$ {valor:,.2f}"
+                for valor in container.datavalues
+            ],
+            padding=4,
+            fontsize=9
+        )
+
+    # Título geral do painel
+    fig.suptitle("SalesInsight PY - Painel Resumo", fontsize=16)
+
+    # Ajustar o layout para acomodar o título geral
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+
+    # Salvar o painel
+    caminho_grafico = "outputs/graficos/painel_resumo.png"
+    plt.savefig(caminho_grafico, dpi=150, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
+    # Verificar se o arquivo foi criado e exibir a imagem exportada
+    print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+    if os.path.exists(caminho_grafico):
+        display(Image(filename=caminho_grafico))
+
+    return caminho_grafico
+
+
+# Executar a Figura 4
+caminho_grafico = criar_painel_resumo(metricas, df_rf04)
 
 
 # ============================================================
 # GRÁFICO BÔNUS - B03 - RECEITA TOTAL POR MÊS E CATEGORIA
 # ============================================================
 
-fig, ax = plt.subplots(figsize=(12, 6))
+def criar_grafico_receita_por_mes_categoria(tabela_mes_categoria):
+    """
+    Cria e salva o gráfico de receita total por mês e categoria.
+    Retorna o caminho do arquivo gerado.
+    """
 
-for categoria, cor in zip(
-    ["Celulares", "Computadores", "Perifericos"],
-    ["tab:cyan", "tab:pink", "tab:purple"]
-):
-    ax.plot(
-        tabela_mes_categoria.index.get_level_values("mes"),
-        tabela_mes_categoria[categoria],
-        marker="o",
-        linewidth=2,
-        color=cor,
-        label=categoria
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    for categoria, cor in zip(
+        ["Celulares", "Computadores", "Perifericos"],
+        ["tab:cyan", "tab:pink", "tab:purple"]
+    ):
+        ax.plot(
+            tabela_mes_categoria.index.get_level_values("mes"),
+            tabela_mes_categoria[categoria],
+            marker="o",
+            linewidth=2,
+            color=cor,
+            label=categoria
+        )
+
+    ax.set_title("Receita Total por Mês e Categoria")
+    ax.set_xlabel("Mês")
+    ax.set_ylabel("Receita Total (R$)")
+    ax.set_xticks(range(1, 13))
+    ax.set_xticklabels(
+        tabela_mes_categoria.index.get_level_values("mes_nome")
     )
+    ax.yaxis.set_major_formatter(
+        ticker.StrMethodFormatter("R$ {x:,.0f}")
+    )
+    ax.legend(title="Categoria")
 
-ax.set_title("Receita Total por Mês e Categoria")
-ax.set_xlabel("Mês")
-ax.set_ylabel("Receita Total (R$)")
-ax.set_xticks(range(1, 13))
-ax.set_xticklabels(
-    tabela_mes_categoria.index.get_level_values("mes_nome")
-)
-ax.yaxis.set_major_formatter(
-    ticker.StrMethodFormatter("R$ {x:,.0f}")
-)
-ax.legend(title="Categoria")
+    plt.tight_layout()
 
-plt.tight_layout()
+    caminho_grafico = "outputs/graficos/receita_por_mes_categoria.png"
+    plt.savefig(caminho_grafico, dpi=150)
+    plt.show()
+    plt.close()
 
-caminho_grafico = "outputs/graficos/receita_por_mes_categoria.png"
-plt.savefig(caminho_grafico, dpi=150)
-plt.close()
+    print("Arquivo existe:", os.path.exists(caminho_grafico))
 
-print("Arquivo existe:", os.path.exists(caminho_grafico))
+    if os.path.exists(caminho_grafico):
+        display(Image(filename=caminho_grafico))
 
-if os.path.exists(caminho_grafico):
-    display(Image(filename=caminho_grafico))
+    return caminho_grafico
+
+
+# Executar o gráfico bônus B03
+caminho_grafico = criar_grafico_receita_por_mes_categoria(tabela_mes_categoria)
 
 
 # ============================================================
 # GRÁFICO EXTRA 1 - QUANTIDADE DE VENDAS POR DIA DA SEMANA
 # ============================================================
 
-# Definir as cores para dias úteis e fins de semana
-cores_dias = [
-    "tab:orange" if dia in ["Domingo", "Sábado"] else "tab:cyan"
-    for dia in vendas_por_dia["dia_semana"]
-]
+def criar_grafico_vendas_por_dia_semana(vendas_por_dia):
+    """
+    Cria e salva o gráfico de quantidade de vendas por dia da semana.
+    Retorna o caminho do arquivo gerado.
+    """
 
-# Criar o gráfico
-fig, ax = plt.subplots(figsize=(12, 6))
+    # Definir as cores para dias úteis e fins de semana
+    cores_dias = [
+        "tab:orange" if dia in ["Domingo", "Sábado"] else "tab:cyan"
+        for dia in vendas_por_dia["dia_semana"]
+    ]
 
-barras = ax.bar(
-    vendas_por_dia["dia_semana"],
-    vendas_por_dia["quantidade_vendas"],
-    color=cores_dias
-)
+    # Criar o gráfico
+    fig, ax = plt.subplots(figsize=(12, 6))
 
-ax.set_title("Quantidade de Vendas por Dia da Semana")
-ax.set_xlabel("Dia da Semana")
-ax.set_ylabel("Quantidade de Vendas")
+    barras = ax.bar(
+        vendas_por_dia["dia_semana"],
+        vendas_por_dia["quantidade_vendas"],
+        color=cores_dias
+    )
 
-# Exibir o valor sobre cada barra
-ax.bar_label(barras, padding=3)
+    ax.set_title("Quantidade de Vendas por Dia da Semana")
+    ax.set_xlabel("Dia da Semana")
+    ax.set_ylabel("Quantidade de Vendas")
 
-# Identificar as cores na legenda
-from matplotlib.patches import Patch
+    # Exibir o valor sobre cada barra
+    ax.bar_label(barras, padding=3)
 
-ax.legend(
-    handles=[
-        Patch(facecolor="tab:cyan", label="Dias úteis"),
-        Patch(facecolor="tab:orange", label="Fim de semana")
-    ],
-    title="Tipo de dia"
-)
+    # Identificar as cores na legenda
+    from matplotlib.patches import Patch
 
-plt.tight_layout()
+    ax.legend(
+        handles=[
+            Patch(facecolor="tab:cyan", label="Dias úteis"),
+            Patch(facecolor="tab:orange", label="Fim de semana")
+        ],
+        title="Tipo de dia"
+    )
 
-caminho_grafico = "outputs/graficos/vendas_por_dia_semana.png"
-plt.savefig(caminho_grafico, dpi=150)
-plt.close()
+    plt.tight_layout()
 
-print("Arquivo existe:", os.path.exists(caminho_grafico))
+    caminho_grafico = "outputs/graficos/vendas_por_dia_semana.png"
+    plt.savefig(caminho_grafico, dpi=150)
+    plt.show()
+    plt.close()
 
-if os.path.exists(caminho_grafico):
-    display(Image(filename=caminho_grafico))
+    print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+    if os.path.exists(caminho_grafico):
+        display(Image(filename=caminho_grafico))
+
+    return caminho_grafico
+
+
+# Executar o gráfico extra 1
+caminho_grafico = criar_grafico_vendas_por_dia_semana(vendas_por_dia)
 
 
 # ============================================================
 # GRÁFICO EXTRA 2 - RECEITA POR CATEGORIA E PRODUTO
 # ============================================================
 
-# Associar cada produto à sua categoria
-df_top_categoria = metricas["top_produtos"].merge(
-    df_rf04[["produto", "categoria"]].drop_duplicates(),
-    on="produto",
-    how="left"
-)
+def criar_grafico_receita_categoria_produtos(metricas, df_rf04):
+    """
+    Cria e salva o gráfico de receita por categoria e produto.
+    Retorna o caminho do arquivo gerado.
+    """
 
-# Criar a figura
-fig, ax = plt.subplots(figsize=(12, 6))
+    # Associar cada produto à sua categoria
+    df_top_categoria = metricas["top_produtos"].merge(
+        df_rf04[["produto", "categoria"]].drop_duplicates(),
+        on="produto",
+        how="left"
+    )
 
-# Criar o gráfico de barras por produto e categoria
-sns.barplot(
-    data=df_top_categoria,
-    x="produto",
-    y="receita_total",
-    hue="categoria",
-    palette={
-        "Computadores": "tab:pink",
-        "Celulares": "tab:cyan",
-        "Perifericos": "tab:purple"
-    },
-    ax=ax
-)
+    # Criar a figura
+    fig, ax = plt.subplots(figsize=(12, 6))
 
-# Definir título e rótulos dos eixos
-ax.set_title("Receita por Categoria e Produto")
-ax.set_xlabel("Produto")
-ax.set_ylabel("Receita Total (R$)")
+    # Criar o gráfico de barras por produto e categoria
+    sns.barplot(
+        data=df_top_categoria,
+        x="produto",
+        y="receita_total",
+        hue="categoria",
+        palette={
+            "Computadores": "tab:pink",
+            "Celulares": "tab:cyan",
+            "Perifericos": "tab:purple"
+        },
+        ax=ax
+    )
 
-# Formatar os valores do eixo vertical
-ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.2f}"))
+    # Definir título e rótulos dos eixos
+    ax.set_title("Receita por Categoria e Produto")
+    ax.set_xlabel("Produto")
+    ax.set_ylabel("Receita Total (R$)")
 
-# Exibir os valores sobre as barras
-for container in ax.containers:
-    ax.bar_label(container, fmt="%.2f", padding=3, fontsize=9)
+    # Formatar os valores do eixo vertical
+    ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.2f}"))
 
-# Exibir a legenda
-ax.legend(title="Categoria")
+    # Exibir os valores sobre as barras
+    for container in ax.containers:
+        ax.bar_label(container, fmt="%.2f", padding=3, fontsize=9)
 
-# Ajustar o layout
-plt.tight_layout()
+    # Exibir a legenda
+    ax.legend(title="Categoria")
 
-# Salvar o gráfico
-caminho_grafico = "outputs/graficos/receita_categoria_produtos.png"
-plt.savefig(caminho_grafico, dpi=150)
-plt.close()
+    # Ajustar o layout
+    plt.tight_layout()
 
-# Verificar se o arquivo foi gerado e exibir o gráfico
-print("Arquivo existe:", os.path.exists(caminho_grafico))
+    # Salvar o gráfico
+    caminho_grafico = "outputs/graficos/receita_categoria_produtos.png"
+    plt.savefig(caminho_grafico, dpi=150)
+    plt.show()
+    plt.close()
 
-if os.path.exists(caminho_grafico):
-    display(Image(filename=caminho_grafico))
+    # Verificar se o arquivo foi gerado e exibir o gráfico
+    print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+    if os.path.exists(caminho_grafico):
+        display(Image(filename=caminho_grafico))
+
+    return caminho_grafico
+
+
+# Executar o gráfico extra 2
+caminho_grafico = criar_grafico_receita_categoria_produtos(metricas, df_rf04)
 
 
 # ============================================================
 # GRÁFICO EXTRA 3 - RECEITA POR TRIMESTRE E TOP 5 PRODUTOS
 # ============================================================
 
-# Identificar os cinco produtos com maior receita total
-top5_produtos = metricas["top_produtos"]["produto"].tolist()
+def criar_grafico_receita_por_trimestre_top5(df_rf04, metricas):
+    """
+    Cria e salva o gráfico de receita por trimestre e top 5 produtos.
+    Retorna o caminho do arquivo gerado.
+    """
 
-# Filtrar os dados dos cinco produtos
-df_top5_trimestre = df_rf04[
-    df_rf04["produto"].isin(top5_produtos)
-].copy()
+    # Identificar os cinco produtos com maior receita total
+    top5_produtos = metricas["top_produtos"]["produto"].tolist()
 
-# Agrupar a receita total por trimestre e produto
-receita_trimestre_produto = (
-    df_top5_trimestre
-    .groupby(["trimestre", "produto"])["receita_total"]
-    .sum()
-    .reset_index()
-)
+    # Filtrar os dados dos cinco produtos
+    df_top5_trimestre = df_rf04[
+        df_rf04["produto"].isin(top5_produtos)
+    ].copy()
 
-# Criar o gráfico
-fig, ax = plt.subplots(figsize=(12, 6))
+    # Agrupar a receita total por trimestre e produto
+    receita_trimestre_produto = (
+        df_top5_trimestre
+        .groupby(["trimestre", "produto"])["receita_total"]
+        .sum()
+        .reset_index()
+    )
 
-sns.barplot(
-    data=receita_trimestre_produto,
-    x="trimestre",
-    y="receita_total",
-    hue="produto",
-    hue_order=top5_produtos,
-    palette={
-        "Notebook": "tab:pink",
-        "Smartphone": "tab:cyan",
-        "Tablet": "tab:purple",
-        "Monitor": "tab:orange",
-        "Headset": "tab:red"
-    },
-    ax=ax
-)
+    # Criar o gráfico
+    fig, ax = plt.subplots(figsize=(12, 6))
 
-ax.set_title("Receita por Trimestre e Top 5 Produtos")
-ax.set_xlabel("Trimestre")
-ax.set_ylabel("Receita Total (R$)")
-ax.legend(title="Produto")
+    sns.barplot(
+        data=receita_trimestre_produto,
+        x="trimestre",
+        y="receita_total",
+        hue="produto",
+        hue_order=top5_produtos,
+        palette={
+            "Notebook": "tab:pink",
+            "Smartphone": "tab:cyan",
+            "Tablet": "tab:purple",
+            "Monitor": "tab:orange",
+            "Headset": "tab:red"
+        },
+        ax=ax
+    )
 
-ax.yaxis.set_major_formatter(
-    ticker.StrMethodFormatter("{x:,.0f}")
-)
+    ax.set_title("Receita por Trimestre e Top 5 Produtos")
+    ax.set_xlabel("Trimestre")
+    ax.set_ylabel("Receita Total (R$)")
+    ax.legend(title="Produto")
 
-plt.tight_layout()
+    ax.yaxis.set_major_formatter(
+        ticker.StrMethodFormatter("{x:,.0f}")
+    )
 
-# Salvar o gráfico
-caminho_grafico = (
-    "outputs/graficos/receita_por_trimestre_top5.png"
-)
-plt.savefig(caminho_grafico, dpi=150)
-plt.close()
+    plt.tight_layout()
 
-# Verificar se o arquivo foi gerado e exibir o gráfico
-print("Arquivo existe:", os.path.exists(caminho_grafico))
+    # Salvar o gráfico
+    caminho_grafico = (
+        "outputs/graficos/receita_por_trimestre_top5.png"
+    )
+    plt.savefig(caminho_grafico, dpi=150)
+    plt.show()
+    plt.close()
 
-if os.path.exists(caminho_grafico):
-    display(Image(filename=caminho_grafico))
+    # Verificar se o arquivo foi gerado e exibir o gráfico
+    print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+    if os.path.exists(caminho_grafico):
+        display(Image(filename=caminho_grafico))
+
+    return caminho_grafico
+
+
+# Executar o gráfico extra 3
+caminho_grafico = criar_grafico_receita_por_trimestre_top5(df_rf04, metricas)
 
 
 # ============================================================
 # GRÁFICO EXTRA 4 - RECEITA POR SEGMENTO DE CLIENTE E CATEGORIA DE PRODUTO
 # ============================================================
 
-# Cruzar as vendas com o segmento de cada cliente
-df_segmento_categoria = df_rf04.merge(
-    clientes_segmentados[["cliente", "segmento"]],
-    on="cliente",
-    how="left"
-)
+def criar_grafico_receita_segmento_categoria(df_rf04, clientes_segmentados):
+    """
+    Cria e salva o gráfico de receita por segmento de cliente e categoria de produto.
+    Retorna o caminho do arquivo gerado.
+    """
 
-# Calcular a receita total por segmento de cliente e categoria de produto
-receita_segmento_categoria = (
-    df_segmento_categoria
-    .groupby(["segmento", "categoria"])["receita_total"]
-    .sum()
-    .reset_index()
-)
+    # Cruzar as vendas com o segmento de cada cliente
+    df_segmento_categoria = df_rf04.merge(
+        clientes_segmentados[["cliente", "segmento"]],
+        on="cliente",
+        how="left"
+    )
 
-# Definir a ordem dos segmentos e das categorias
-ordem_segmentos = ["Bronze", "Prata", "Ouro"]
-ordem_categorias = ["Computadores", "Celulares", "Perifericos"]
+    # Calcular a receita total por segmento de cliente e categoria de produto
+    receita_segmento_categoria = (
+        df_segmento_categoria
+        .groupby(["segmento", "categoria"])["receita_total"]
+        .sum()
+        .reset_index()
+    )
 
-# Criar o gráfico
-fig, ax = plt.subplots(figsize=(12, 6))
+    # Definir a ordem dos segmentos e das categorias
+    ordem_segmentos = ["Bronze", "Prata", "Ouro"]
+    ordem_categorias = ["Computadores", "Celulares", "Perifericos"]
 
-sns.barplot(
-    data=receita_segmento_categoria,
-    x="segmento",
-    y="receita_total",
-    hue="categoria",
-    order=ordem_segmentos,
-    hue_order=ordem_categorias,
-    palette={
-        "Computadores": "tab:pink",
-        "Celulares": "tab:cyan",
-        "Perifericos": "tab:purple"
-    },
-    ax=ax
-)
+    # Criar o gráfico
+    fig, ax = plt.subplots(figsize=(12, 6))
 
-ax.set_title("Receita por Segmento de Cliente e Categoria de Produto")
-ax.set_xlabel("Segmento de Cliente")
-ax.set_ylabel("Receita Total (R$)")
-ax.yaxis.set_major_formatter(
-    ticker.StrMethodFormatter("R$ {x:,.0f}")
-)
-ax.legend(title="Categoria de Produto")
+    sns.barplot(
+        data=receita_segmento_categoria,
+        x="segmento",
+        y="receita_total",
+        hue="categoria",
+        order=ordem_segmentos,
+        hue_order=ordem_categorias,
+        palette={
+            "Computadores": "tab:pink",
+            "Celulares": "tab:cyan",
+            "Perifericos": "tab:purple"
+        },
+        ax=ax
+    )
 
-plt.tight_layout()
+    ax.set_title("Receita por Segmento de Cliente e Categoria de Produto")
+    ax.set_xlabel("Segmento de Cliente")
+    ax.set_ylabel("Receita Total (R$)")
+    ax.yaxis.set_major_formatter(
+        ticker.StrMethodFormatter("R$ {x:,.0f}")
+    )
+    ax.legend(title="Categoria de Produto")
 
-caminho_grafico = (
-    "outputs/graficos/"
-    "receita_segmento_cliente_categoria_produto.png"
-)
+    plt.tight_layout()
 
-plt.savefig(caminho_grafico, dpi=150)
-plt.close()
+    caminho_grafico = (
+        "outputs/graficos/"
+        "receita_segmento_cliente_categoria_produto.png"
+    )
 
-print("Arquivo existe:", os.path.exists(caminho_grafico))
+    plt.savefig(caminho_grafico, dpi=150)
+    plt.show()
+    plt.close()
 
-if os.path.exists(caminho_grafico):
-    display(Image(filename=caminho_grafico))
+    print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+    if os.path.exists(caminho_grafico):
+        display(Image(filename=caminho_grafico))
+
+    return caminho_grafico
+
+
+# Executar o gráfico extra 4
+caminho_grafico = criar_grafico_receita_segmento_categoria(df_rf04, clientes_segmentados)
 
 
 # ==============================================================
 # GRÁFICO EXTRA 5 - QUANTIDADE DE CLIENTES POR REGIÃO E SEGMENTO
 # ==============================================================
 
-# Criar a tabela com a quantidade de clientes por região e segmento
-df_segmento_regiao = df_rf04.merge(
-    clientes_segmentados[["cliente", "segmento"]],
-    on="cliente",
-    how="left"
-)
+def criar_grafico_clientes_regiao_segmento(df_rf04, clientes_segmentados):
+    """
+    Cria e salva o gráfico de quantidade de clientes por região e segmento.
+    Retorna o caminho do arquivo gerado.
+    """
 
-clientes_por_regiao = (
-    df_segmento_regiao
-    .groupby(["regiao", "segmento"])["cliente"]
-    .nunique()
-    .unstack(fill_value=0)
-)
-
-# Garantir a ordem dos segmentos
-ordem_segmentos = ["Bronze", "Prata", "Ouro"]
-clientes_por_regiao = clientes_por_regiao.reindex(
-    columns=ordem_segmentos,
-    fill_value=0
-)
-
-# Criar o gráfico de barras empilhadas
-fig, ax = plt.subplots(figsize=(12, 7))
-
-cores_segmentos = {
-    "Bronze": "tab:orange",
-    "Prata": "tab:cyan",
-    "Ouro": "tab:pink"
-}
-
-base = [0] * len(clientes_por_regiao)
-posicoes = list(range(len(clientes_por_regiao)))
-
-for segmento in ordem_segmentos:
-    valores = clientes_por_regiao[segmento].values
-
-    barras = ax.bar(
-        posicoes,
-        valores,
-        bottom=base,
-        color=cores_segmentos[segmento],
-        label=segmento,
-        width=0.65
+    # Criar a tabela com a quantidade de clientes por região e segmento
+    df_segmento_regiao = df_rf04.merge(
+        clientes_segmentados[["cliente", "segmento"]],
+        on="cliente",
+        how="left"
     )
 
-    # Exibir a quantidade dentro de cada segmento
-    for barra, valor, base_inferior in zip(barras, valores, base):
-        if valor > 0:
-            ax.text(
-                barra.get_x() + barra.get_width() / 2,
-                base_inferior + valor / 2,
-                str(int(valor)),
-                ha="center",
-                va="center",
-                fontsize=10,
-                fontweight="bold"
-            )
+    clientes_por_regiao = (
+        df_segmento_regiao
+        .groupby(["regiao", "segmento"])["cliente"]
+        .nunique()
+        .unstack(fill_value=0)
+    )
 
-    base = [b + v for b, v in zip(base, valores)]
+    # Garantir a ordem dos segmentos
+    ordem_segmentos = ["Bronze", "Prata", "Ouro"]
+    clientes_por_regiao = clientes_por_regiao.reindex(
+        columns=ordem_segmentos,
+        fill_value=0
+    )
 
-# Configurar o gráfico
-ax.set_title("Quantidade de Clientes por Região e Segmento")
-ax.set_xlabel("Região")
-ax.set_ylabel("Quantidade de Clientes")
-ax.set_xticks(posicoes)
-ax.set_xticklabels(clientes_por_regiao.index)
-ax.legend(title="Segmento de Cliente")
-ax.set_ylim(bottom=0)
+    # Criar o gráfico de barras empilhadas
+    fig, ax = plt.subplots(figsize=(12, 7))
 
-plt.tight_layout()
+    cores_segmentos = {
+        "Bronze": "tab:orange",
+        "Prata": "tab:cyan",
+        "Ouro": "tab:pink"
+    }
 
-# Salvar o gráfico
-caminho_grafico = (
-    "outputs/graficos/quantidade_clientes_regiao_segmento.png"
-)
+    base = [0] * len(clientes_por_regiao)
+    posicoes = list(range(len(clientes_por_regiao)))
 
-plt.savefig(caminho_grafico, dpi=150, bbox_inches="tight")
-plt.close()
+    for segmento in ordem_segmentos:
+        valores = clientes_por_regiao[segmento].values
 
-# Exibir o gráfico salvo
-print("Arquivo existe:", os.path.exists(caminho_grafico))
+        barras = ax.bar(
+            posicoes,
+            valores,
+            bottom=base,
+            color=cores_segmentos[segmento],
+            label=segmento,
+            width=0.65
+        )
 
-if os.path.exists(caminho_grafico):
-    display(Image(filename=caminho_grafico))
+        # Exibir a quantidade dentro de cada segmento
+        for barra, valor, base_inferior in zip(barras, valores, base):
+            if valor > 0:
+                ax.text(
+                    barra.get_x() + barra.get_width() / 2,
+                    base_inferior + valor / 2,
+                    str(int(valor)),
+                    ha="center",
+                    va="center",
+                    fontsize=10,
+                    fontweight="bold"
+                )
+
+        base = [b + v for b, v in zip(base, valores)]
+
+    # Configurar o gráfico
+    ax.set_title("Quantidade de Clientes por Região e Segmento")
+    ax.set_xlabel("Região")
+    ax.set_ylabel("Quantidade de Clientes")
+    ax.set_xticks(posicoes)
+    ax.set_xticklabels(clientes_por_regiao.index)
+    ax.legend(title="Segmento de Cliente")
+    ax.set_ylim(bottom=0)
+
+    plt.tight_layout()
+
+    # Salvar o gráfico
+    caminho_grafico = (
+        "outputs/graficos/quantidade_clientes_regiao_segmento.png"
+    )
+
+    plt.savefig(caminho_grafico, dpi=150, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
+    # Exibir o gráfico salvo
+    print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+    if os.path.exists(caminho_grafico):
+        display(Image(filename=caminho_grafico))
+
+    return caminho_grafico
 
 
-# ============================================================
+# Executar o gráfico extra 5
+caminho_grafico = criar_grafico_clientes_regiao_segmento(df_rf04, clientes_segmentados)
+
+ 
+# ======================================================================
 # GRÁFICO BÔNUS - B04 - MAPA DE CALOR DA RECEITA POR PRODUTO E CATEGORIA
-# ============================================================
+# ======================================================================
 
-# Calcular a receita total por categoria e produto
-receita_categoria_produto = (
-    df_rf04
-    .groupby(["categoria", "produto"])["receita_total"]
-    .sum()
-    .reset_index()
-)
+def criar_mapa_calor_receita_produto_categoria(df_rf04):
+    """
+    Cria e salva o mapa de calor da receita por produto e categoria.
+    Retorna o caminho do arquivo gerado.
+    """
 
-# Organizar os dados para o mapa de calor
-tabela_calor = receita_categoria_produto.pivot(
-    index="produto",
-    columns="categoria",
-    values="receita_total"
-)
+    # Calcular a receita total por categoria e produto
+    receita_categoria_produto = (
+        df_rf04
+        .groupby(["categoria", "produto"])["receita_total"]
+        .sum()
+        .reset_index()
+    )
 
-# Criar o mapa de calor
-fig, ax = plt.subplots(figsize=(10, 6))
+    # Organizar os dados para o mapa de calor
+    tabela_calor = receita_categoria_produto.pivot(
+        index="produto",
+        columns="categoria",
+        values="receita_total"
+    )
 
-sns.heatmap(
-    tabela_calor,
-    annot=True,
-    fmt=".2f",
-    cmap="YlOrRd",
-    linewidths=0.5,
-    linecolor="white",
-    mask=tabela_calor.isna(),
-    cbar_kws={"label": "Receita total (R$)"},
-    ax=ax
-)
+    # Criar o mapa de calor
+    fig, ax = plt.subplots(figsize=(10, 6))
 
-ax.set_title("Mapa de Calor da Receita Total por Produto e Categoria")
-ax.set_xlabel("Categoria")
-ax.set_ylabel("Produto")
+    sns.heatmap(
+        tabela_calor,
+        annot=True,
+        fmt=".2f",
+        cmap="YlOrRd",
+        linewidths=0.5,
+        linecolor="white",
+        mask=tabela_calor.isna(),
+        cbar_kws={"label": "Receita total (R$)"},
+        ax=ax
+    )
 
-fig.tight_layout()
-fig.savefig(
-    "outputs/graficos/mapa_calor_receita_produto_categoria.png",
-    dpi=150,
-    bbox_inches="tight"
-)
+    ax.set_title("Mapa de Calor da Receita Total por Produto e Categoria")
+    ax.set_xlabel("Categoria")
+    ax.set_ylabel("Produto")
 
-plt.show()
-plt.close(fig)
+    fig.tight_layout()
+
+    caminho_grafico = (
+        "outputs/graficos/mapa_calor_receita_produto_categoria.png"
+    )
+
+    fig.savefig(
+        caminho_grafico,
+        dpi=150,
+        bbox_inches="tight"
+    )
+
+    plt.show()
+    plt.close(fig)
+
+    # Verificar se o arquivo foi gerado e exibir o gráfico
+    print("Arquivo existe:", os.path.exists(caminho_grafico))
+
+    if os.path.exists(caminho_grafico):
+        display(Image(filename=caminho_grafico))
+
+    return caminho_grafico
+
+
+# Executar o gráfico bônus B04
+caminho_grafico = criar_mapa_calor_receita_produto_categoria(df_rf04)
