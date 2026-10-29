@@ -116,23 +116,13 @@ Para executar o projeto localmente, é necessário ter:
 
  
 ### Execução local com VS Code
-1. Clone o repositório do GitHub:
+1. Clone o repositório do GitHub: git clone https://github.com/Fabiana444/salesinsight-py.git
 
-git clone https://github.com/Fabiana444/salesinsight-py.git
+2. Acesse a pasta do projeto: cd salesinsight-py
 
-2. Acesse a pasta do projeto.
+3. Instale as dependências: No terminal, execute python -m pip install pandas numpy matplotlib seaborn
 
-cd salesinsight-py
-
-3. Instale as dependências.
-
-No terminal, execute:
-
-python -m pip install pandas numpy matplotlib seaborn
-
-4. Execute o programa.
-
-python salesinsight.py
+4. Execute o programa: python salesinsight.py
 
 O programa executará as etapas de carregamento, limpeza, transformação, análise, geração de gráficos, apresentação do resumo e exportação dos resultados.
 
@@ -285,29 +275,38 @@ Organização do fluxo de execução: A classe AnalisadorDeVendas foi criada par
 1. Como as vendas se comportam ao longo do tempo?
 <p>Por mês: fevereiro teve a maior receita, com R$ 186.065,22, seguido de outubro, com R$ 181.878,41. Setembro apresentou a menor receita, com R$ 57.509,42. O comportamento foi irregular ao longo do ano, com aumentos e quedas entre os meses.</p>
 
-<p>Por trimestre: o primeiro trimestre teve 52 vendas, o segundo 42, o terceiro 52 e o quarto 48. Em receita média por venda, o primeiro trimestre apresentou R$ 8.402,14, o segundo R$ 5.807,51, o terceiro R$ 6.596,33 e o quarto R$ 7.424,46.</p>
 
+
+<p>Por trimestre: o primeiro trimestre teve 52 vendas, o segundo 42, o terceiro 52 e o quarto 48. Em receita média por venda, o primeiro trimestre apresentou R$ 8.402,14, o segundo R$ 5.807,51, o terceiro R$ 6.596,33 e o quarto R$ 7.424,46.</p>
 <p>O primeiro trimestre teve o maior ticket médio, enquanto o segundo teve o menor. A contagem de vendas por trimestre, sozinha, não indica a receita total de cada trimestre; os valores acima são tickets médios, conforme o relatório.</p>
+
+
 
 2. Quais produtos e categorias geram mais receita?
 <p>Produtos: o Notebook lidera com R$ 493.242,63, seguido de Smartphone, com R$ 343.721,95, e Tablet, com R$ 236.519,71
 Categorias: Computadores gera a maior receita, seguido de Celulares e Periféricos.</p>
+
+
 
 3. Quais regiões têm melhor desempenho?
 <p>A região Centro-Oeste apresenta a maior receita total, enquanto o Nordeste apresenta o maior ticket médio por venda.
 Centro-Oeste lidera em faturamento total; Nordeste lidera em valor médio por venda. A região Sul apresenta a menor receita total e o menor ticket médio.
 </p>
 
+
+
 4. Quais clientes são mais valiosos?
 <p>A segmentação identificou 49 clientes: 35 no segmento Ouro, 9 no Prata e 5 no Bronze.</p>
 <p>O cliente de maior gasto foi Cliente_049, com R$ 86.381,62, classificado no segmento Ouro. Em seguida aparecem Cliente_006, com R$ 78.524,09, e Cliente_009, com R$ 72.517,27.</p>
 <p>Os clientes Ouro são os mais valiosos em termos de gasto médio, e Cliente_049 é o cliente com maior gasto total identificado na execução.</p>
 
+
+
 5. Existe relação entre quantidade vendida e receita por transação?
 <p>Sim, existe uma relação direta, mas a quantidade não explica a receita sozinha. A receita de uma venda depende da quantidade vendida multiplicada pelo preço unitário.</p>
-
 <p>Os resultados de teste da função mostram, por exemplo, uma venda com quantidade 9 e receita de R$ 20.405,97, enquanto outra com quantidade 7 apresenta receita de R$ 799,75. Isso evidencia que o preço unitário também influencia o resultado.</p>
 <p>Conclusão: vender mais unidades tende a aumentar a receita quando o preço unitário é mantido, mas transações com quantidades semelhantes podem gerar receitas muito diferentes devido aos preços dos produtos.</p>
+
 
 
 ## Referências da entrega
