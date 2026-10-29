@@ -160,7 +160,7 @@ O Google Colab já possui Pandas, NumPy, Matplotlib e Seaborn instalados.
 
 Observação: os arquivos criados no ambiente do Colab ficam nesse ambiente de execução. Para mantê-los no computador, será necessário baixá-los ou salvá-los.
 
- 
+ ```
 ## Estrutura do projeto
 
 salesinsight-py/
@@ -186,6 +186,8 @@ salesinsight-py/
 ├── salesinsight.py          # fluxo principal
 ├── vendas.csv               # dataset (gerado ou externo)
 └── README.md
+```
+
 
 O arquivo salesinsight.py contém as funções de processamento e análise, a classe AnalisadorDeVendas e o ponto de entrada do programa.
 
@@ -281,30 +283,31 @@ Organização do fluxo de execução: A classe AnalisadorDeVendas foi criada par
 ## Respostas às perguntas do desafio
 
 1. Como as vendas se comportam ao longo do tempo?
-Por mês: fevereiro teve a maior receita, com R$ 186.065,22, seguido de outubro, com R$ 181.878,41. Setembro apresentou a menor receita, com R$ 57.509,42. O comportamento foi irregular ao longo do ano, com aumentos e quedas entre os meses.
+<p>Por mês: fevereiro teve a maior receita, com R$ 186.065,22, seguido de outubro, com R$ 181.878,41. Setembro apresentou a menor receita, com R$ 57.509,42. O comportamento foi irregular ao longo do ano, com aumentos e quedas entre os meses.</p>
 
-Por trimestre: o primeiro trimestre teve 52 vendas, o segundo 42, o terceiro 52 e o quarto 48. Em receita média por venda, o primeiro trimestre apresentou R$ 8.402,14, o segundo R$ 5.807,51, o terceiro R$ 6.596,33 e o quarto R$ 7.424,46.
+<p>Por trimestre: o primeiro trimestre teve 52 vendas, o segundo 42, o terceiro 52 e o quarto 48. Em receita média por venda, o primeiro trimestre apresentou R$ 8.402,14, o segundo R$ 5.807,51, o terceiro R$ 6.596,33 e o quarto R$ 7.424,46.</p>
 
-O primeiro trimestre teve o maior ticket médio, enquanto o segundo teve o menor. A contagem de vendas por trimestre, sozinha, não indica a receita total de cada trimestre; os valores acima são tickets médios, conforme o relatório.
+<p>O primeiro trimestre teve o maior ticket médio, enquanto o segundo teve o menor. A contagem de vendas por trimestre, sozinha, não indica a receita total de cada trimestre; os valores acima são tickets médios, conforme o relatório.</p>
 
 2. Quais produtos e categorias geram mais receita?
-Produtos: o Notebook lidera com R$ 493.242,63, seguido de Smartphone, com R$ 343.721,95, e Tablet, com R$ 236.519,71
-Categorias: Computadores gera a maior receita, seguido de Celulares e Periféricos.
+<p>Produtos: o Notebook lidera com R$ 493.242,63, seguido de Smartphone, com R$ 343.721,95, e Tablet, com R$ 236.519,71
+Categorias: Computadores gera a maior receita, seguido de Celulares e Periféricos.</p>
 
 3. Quais regiões têm melhor desempenho?
-A região Centro-Oeste apresenta a maior receita total, enquanto o Nordeste apresenta o maior ticket médio por venda.
+<p>A região Centro-Oeste apresenta a maior receita total, enquanto o Nordeste apresenta o maior ticket médio por venda.
 Centro-Oeste lidera em faturamento total; Nordeste lidera em valor médio por venda. A região Sul apresenta a menor receita total e o menor ticket médio.
+</p>
 
 4. Quais clientes são mais valiosos?
-A segmentação identificou 49 clientes: 35 no segmento Ouro, 9 no Prata e 5 no Bronze.
-O cliente de maior gasto foi Cliente_049, com R$ 86.381,62, classificado no segmento Ouro. Em seguida aparecem Cliente_006, com R$ 78.524,09, e Cliente_009, com R$ 72.517,27.
-O os clientes Ouro são os mais valiosos em termos de gasto médio, e Cliente_049 é o cliente com maior gasto total identificado na execução.
+<p>A segmentação identificou 49 clientes: 35 no segmento Ouro, 9 no Prata e 5 no Bronze.</p>
+<p>O cliente de maior gasto foi Cliente_049, com R$ 86.381,62, classificado no segmento Ouro. Em seguida aparecem Cliente_006, com R$ 78.524,09, e Cliente_009, com R$ 72.517,27.</p>
+<p>Os clientes Ouro são os mais valiosos em termos de gasto médio, e Cliente_049 é o cliente com maior gasto total identificado na execução.</p>
 
 5. Existe relação entre quantidade vendida e receita por transação?
-Sim, existe uma relação direta, mas a quantidade não explica a receita sozinha. A receita de uma venda depende da quantidade vendida multiplicada pelo preço unitário.
+<p>Sim, existe uma relação direta, mas a quantidade não explica a receita sozinha. A receita de uma venda depende da quantidade vendida multiplicada pelo preço unitário.</p>
 
-Os resultados de teste da função mostram, por exemplo, uma venda com quantidade 9 e receita de R$ 20.405,97, enquanto outra com quantidade 7 apresenta receita de R$ 799,75. Isso evidencia que o preço unitário também influencia o resultado.
-Conclusão: vender mais unidades tende a aumentar a receita quando o preço unitário é mantido, mas transações com quantidades semelhantes podem gerar receitas muito diferentes devido aos preços dos produtos.
+<p>Os resultados de teste da função mostram, por exemplo, uma venda com quantidade 9 e receita de R$ 20.405,97, enquanto outra com quantidade 7 apresenta receita de R$ 799,75. Isso evidencia que o preço unitário também influencia o resultado.</p>
+<p>Conclusão: vender mais unidades tende a aumentar a receita quando o preço unitário é mantido, mas transações com quantidades semelhantes podem gerar receitas muito diferentes devido aos preços dos produtos.</p>
 
 
 ## Referências da entrega
