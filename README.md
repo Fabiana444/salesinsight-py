@@ -15,10 +15,11 @@ Para alcançá-lo é necessário atender o desafio de gerar um relatório analí
 - Quais clientes são mais valiosos (segmentação simples por faixa de gasto)?
 - Existe relação entre a quantidade vendida e a receita gerada por transação?
 
+<br>
 
  ## O que o projeto analisa
 
-### Visualizações em PNG para facilitar a interpretação dos resultados
+Visualizações em PNG para facilitar a interpretação dos resultados
 - Receita total por mês.
 
 - Receita total por região.
@@ -52,7 +53,7 @@ _ Receita por trimestre e top 5 produtos.
 
 - Estatísticas gerais em JSON.
 
-
+<br>
  
 ## Conceitos aplicados (Modulo 01 - Semanas 01 a 07)
 O desenvolvimento do projeto aplica conceitos de programação e análise de dados abordados no curso:
@@ -65,10 +66,11 @@ O desenvolvimento do projeto aplica conceitos de programação e análise de dad
 - Matplotlib e Seaborn: linha, barra, dispersao, subplots, export
 - Git e GitHub: branches, commits e GitFlow simplificado
 
- 
+ <br>
+
  ## Bibliotecas e ferramentas utilizadas
 
- ### Linguagem e bibliotecas Python
+Linguagem e bibliotecas Python
 - Python 3.10 ou superior: linguagem utilizada no desenvolvimento.
 
 - Pandas: manipulação, organização, transformação e análise dos dados.
@@ -89,6 +91,7 @@ O desenvolvimento do projeto aplica conceitos de programação e análise de dad
 
 Os módulos json, datetime, os e random fazem parte da biblioteca padrão do Python, não sendo necessário instalá-los separadamente.
 
+<br>
 
 ## Ambiente e ferramentas de desenvolvimento
 
@@ -103,7 +106,7 @@ Os módulos json, datetime, os e random fazem parte da biblioteca padrão do Pyt
 
 ## Como executar
 
-### Pré-requisitos
+Pré-requisitos
 Para executar o projeto localmente, é necessário ter:
 
 - Python 3.10 ou superior.
@@ -183,10 +186,11 @@ O arquivo salesinsight.py contém as funções de processamento e análise, a cl
 
 O arquivo vendas.csv contém os dados utilizados na análise. A pasta assets armazena a imagem de capa da documentação. A pasta outputs reúne os resultados exportados durante a execução.
 
+<br>
 
 ## Arquivos gerados
 
-### metricas_por_mes.csv
+metricas_por_mes.csv
 
 Arquivo CSV que reúne as métricas mensais de vendas, incluindo:
 
@@ -199,7 +203,7 @@ Arquivo CSV que reúne as métricas mensais de vendas, incluindo:
 - n_vendas: número de vendas contabilizadas no mês.
 
 
-### segmentacao_clientes.csv
+segmentacao_clientes.csv
 Arquivo CSV que apresenta os clientes segmentados, com as seguintes informações:
 
 - cliente: identificação do cliente.
@@ -209,9 +213,10 @@ Arquivo CSV que apresenta os clientes segmentados, com as seguintes informaçõe
 - segmento: classificação do cliente nos níveis Bronze, Prata ou Ouro.
 
 
-### estatisticas_gerais.json
+estatisticas_gerais.json
 Arquivo JSON que armazena estatísticas gerais calculadas pelo projeto, incluindo receita total, quantidade vendida, total de vendas, ticket médio geral, métricas trimestrais e valores relacionados aos segmentos de clientes e às categorias de produtos.
 
+<br>
 
 ## Funcionalidades implementadas
 O projeto foi organizado em etapas que compõem o fluxo de análise de dados:
@@ -248,6 +253,7 @@ A seguir, foram criadas colunas derivadas, como receita total, mês, nome do mê
 
 10. Execução completa do fluxo (ponto de entrada): utilização da classe AnalisadorDeVendas para organizar as etapas e executar o processamento completo por meio do ponto de entrada main().
 
+<br>
 
 ## Decisões técnicas
 Durante o processamento, foram adotadas decisões para manter a consistência dos dados e organizar as etapas de análise. Entre elas:
@@ -269,53 +275,54 @@ Também foram executadas tarefas bônus que contribuem tanto para a análise dos
 
 Organização do fluxo de execução: A classe AnalisadorDeVendas foi criada para reunir as etapas do processamento em uma sequência organizada, reutilizando as funções desenvolvidas anteriormente. O método executar() coordena as etapas e o ponto de entrada main() permite iniciar o programa.
  
+<br>
 
 ## Respostas às perguntas do desafio
 
-1. Como as vendas se comportam ao longo do tempo?
+### Como as vendas se comportam ao longo do tempo?
 <p>Por mês: fevereiro teve a maior receita, com R$ 186.065,22, seguido de outubro, com R$ 181.878,41. Setembro apresentou a menor receita, com R$ 57.509,42. O comportamento foi irregular ao longo do ano, com aumentos e quedas entre os meses.</p>
-
-
 
 <p>Por trimestre: o primeiro trimestre teve 52 vendas, o segundo 42, o terceiro 52 e o quarto 48. Em receita média por venda, o primeiro trimestre apresentou R$ 8.402,14, o segundo R$ 5.807,51, o terceiro R$ 6.596,33 e o quarto R$ 7.424,46.</p>
 <p>O primeiro trimestre teve o maior ticket médio, enquanto o segundo teve o menor. A contagem de vendas por trimestre, sozinha, não indica a receita total de cada trimestre; os valores acima são tickets médios, conforme o relatório.</p>
 
 
 
-2. Quais produtos e categorias geram mais receita?
+### Quais produtos e categorias geram mais receita?
 <p>Produtos: o Notebook lidera com R$ 493.242,63, seguido de Smartphone, com R$ 343.721,95, e Tablet, com R$ 236.519,71
 Categorias: Computadores gera a maior receita, seguido de Celulares e Periféricos.</p>
 
 
 
-3. Quais regiões têm melhor desempenho?
+### Quais regiões têm melhor desempenho?
 <p>A região Centro-Oeste apresenta a maior receita total, enquanto o Nordeste apresenta o maior ticket médio por venda.
 Centro-Oeste lidera em faturamento total; Nordeste lidera em valor médio por venda. A região Sul apresenta a menor receita total e o menor ticket médio.
 </p>
 
 
 
-4. Quais clientes são mais valiosos?
+### Quais clientes são mais valiosos?
 <p>A segmentação identificou 49 clientes: 35 no segmento Ouro, 9 no Prata e 5 no Bronze.</p>
 <p>O cliente de maior gasto foi Cliente_049, com R$ 86.381,62, classificado no segmento Ouro. Em seguida aparecem Cliente_006, com R$ 78.524,09, e Cliente_009, com R$ 72.517,27.</p>
 <p>Os clientes Ouro são os mais valiosos em termos de gasto médio, e Cliente_049 é o cliente com maior gasto total identificado na execução.</p>
 
 
 
-5. Existe relação entre quantidade vendida e receita por transação?
+### Existe relação entre quantidade vendida e receita por transação?
 <p>Sim, existe uma relação direta, mas a quantidade não explica a receita sozinha. A receita de uma venda depende da quantidade vendida multiplicada pelo preço unitário.</p>
 <p>Os resultados de teste da função mostram, por exemplo, uma venda com quantidade 9 e receita de R$ 20.405,97, enquanto outra com quantidade 7 apresenta receita de R$ 799,75. Isso evidencia que o preço unitário também influencia o resultado.</p>
 <p>Conclusão: vender mais unidades tende a aumentar a receita quando o preço unitário é mantido, mas transações com quantidades semelhantes podem gerar receitas muito diferentes devido aos preços dos produtos.</p>
 
 
 
-## Referências da entrega
+## Links úteis
  
 | O quê | Link |
 |---|---|
 | Kanban do projeto no Trello | <a href="https://trello.com/invite/b/6aa1962934ea1d01a91c6103/ATTI0565e49f5707a3602c5333576834be794277DB95/fabiana-nonjah-kanabanmini-projetosalesinsight-py" target="_blank" rel="noopener noreferrer">Abrir o Kanban no Trello</a> |
 | Notebook de testes no Colab | <a href="https://drive.google.com/drive/folders/1RdtG6wAA1oJAwWvBoJStMjP_lVj1h6V2?usp=sharing" target="_blank" rel="noopener noreferrer">Abrir o notebook no Colab</a> |
-| Vídeo de demonstração (até 5 minutos) | <a href="COLE_AQUI_O_LINK_DO_VIDEO" target="_blank" rel="noopener noreferrer">Assistir ao vídeo</a> |
+| Vídeo de demonstração (até 5 minutos) | <a href="https://drive.google.com/file/d/1sOs-MqCD--ej-EmDEkjQ8gUoCVe-kGE3/view?usp=sharing" target="_blank" rel="noopener noreferrer">Assistir ao vídeo</a> |
+
+<br>
 
 
 ## Limitações do projeto
@@ -323,8 +330,8 @@ O SalesInsight PY foi desenvolvido como um mini-projeto avaliativo de análise e
 
 Os resultados apresentados são descritivos: o projeto organiza e resume os dados disponíveis, mas não deve ser interpretado como um modelo de previsão de vendas.
 
+<br>
 
-## Sobre o trabalho
 
 ### Documento elaborado para o curso Desenvolvimento de IA para Análise Preditiva — Módulo 01, Semana 07, como parte do mini-projeto avaliativo.
 
