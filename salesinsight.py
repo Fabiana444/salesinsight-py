@@ -6,89 +6,106 @@ import os
 from datetime import datetime, timedelta
 
 
+# ==================================
+# RF01 - Gerar o dataset no código
+# ==================================
+
 def gerar_dataset_vendas(n_registros=200, seed=42):
-	"""Gera um dataset sintético de vendas com dados sujos."""
-	random.seed(seed)
-	np.random.seed(seed)
+    """Gera um dataset sintético de vendas com dados sujos."""
+    random.seed(seed)
+    np.random.seed(seed)
 
-	produtos = [
-		"Notebook",
-		"Smartphone",
-		"Tablet",
-		"Monitor",
-		"Teclado",
-		"Mouse",
-		"Headset",
-	]
-	categorias = {
-		"Notebook": "Computadores",
-		"Smartphone": "Celulares",
-		"Tablet": "Celulares",
-		"Monitor": "Computadores",
-		"Teclado": "Perifericos",
-		"Mouse": "Perifericos",
-		"Headset": "Perifericos",
-	}
-	precos = {
-		"Notebook": 3500,
-		"Smartphone": 2200,
-		"Tablet": 1800,
-		"Monitor": 1200,
-		"Teclado": 250,
-		"Mouse": 120,
-		"Headset": 350,
-	}
-	regioes = ["Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"]
-	data_inicio = datetime(2025, 1, 1)
-	dados = []
+    produtos = [
+        "Notebook",
+        "Smartphone",
+        "Tablet",
+        "Monitor",
+        "Teclado",
+        "Mouse",
+        "Headset",
+    ]
 
-	for i in range(n_registros):
-		produto = random.choice(produtos)
-		categoria = categorias[produto]
-		quantidade = random.randint(1, 10)
-		preco = round(precos[produto] * random.uniform(0.85, 1.15), 2)
-		data = data_inicio + timedelta(days=random.randint(0, 364))
-		data_txt = data.strftime("%Y-%m-%d")
-		cliente = f"Cliente_{random.randint(1, 50):03d}"
+    categorias = {
+        "Notebook": "Computadores",
+        "Smartphone": "Celulares",
+        "Tablet": "Celulares",
+        "Monitor": "Computadores",
+        "Teclado": "Perifericos",
+        "Mouse": "Perifericos",
+        "Headset": "Perifericos",
+    }
 
-		# Sujeira proposital para a etapa de limpeza.
-		if random.random() < 0.03:
-			data_txt = "DATA INVALIDA"
+    precos = {
+        "Notebook": 3500,
+        "Smartphone": 2200,
+        "Tablet": 1800,
+        "Monitor": 1200,
+        "Teclado": 250,
+        "Mouse": 120,
+        "Headset": 350,
+    }
 
-		dados.append(
-			{
-				"id_venda": i + 1,
-				"data_venda": data_txt,
-				"cliente": cliente,
-				"produto": produto,
-				"categoria": categoria,
-				"regiao": random.choice(regioes),
-				"quantidade": quantidade,
-				"preco_unitario": preco,
-			}
-		)
+    regioes = ["Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"]
+    data_inicio = datetime(2025, 1, 1)
+    dados = []
 
-	return pd.DataFrame(dados)
+    for i in range(n_registros):
+        produto = random.choice(produtos)
+        categoria = categorias[produto]
+        quantidade = random.randint(1, 10)
+        preco = round(precos[produto] * random.uniform(0.85, 1.15), 2)
+        data = data_inicio + timedelta(days=random.randint(0, 364))
+        data_txt = data.strftime("%Y-%m-%d")
+        cliente = f"Cliente_{random.randint(1, 50):03d}"
+
+        # Sujeira proposital para testar a limpeza.
+        if random.random() < 0.03:
+            data_txt = "DATA INVALIDA"
+
+        dados.append(
+            {
+                "id_venda": i + 1,
+                "data_venda": data_txt,
+                "cliente": cliente,
+                "produto": produto,
+                "categoria": categoria,
+                "regiao": random.choice(regioes),
+                "quantidade": quantidade,
+                "preco_unitario": preco,
+            }
+        )
+
+    return pd.DataFrame(dados)
 
 
-# Gerar e salvar o CSV bruto.
+
 def gerar_salvar_exibir_dataset(n_registros=200, seed=42):
     """
     Gera o dataset bruto, salva o arquivo CSV e exibe os primeiros registros.
     Retorna o DataFrame gerado.
     """
     df_bruto = gerar_dataset_vendas(n_registros, seed)
-    df_bruto.to_csv("vendas.csv", index=False)
+
+    caminho_csv = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "vendas.csv"
+    )
+
+    df_bruto.to_csv(caminho_csv, index=False)
 
     print(f"Dataset gerado com {len(df_bruto)} registros.")
     print(df_bruto.head())
 
     return df_bruto
 
-# Executar a geração do dataset
-import os
+# ============================================================
+# Executar a geração ou carregar o dataset existente
+# ============================================================
 
-caminho_csv = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendas.csv")
+caminho_csv = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "vendas.csv"
+)
 
 if os.path.exists(caminho_csv):
     df_bruto = pd.read_csv(caminho_csv)
@@ -96,6 +113,10 @@ if os.path.exists(caminho_csv):
 else:
     df_bruto = gerar_salvar_exibir_dataset()
 
+
+# =========================================
+# RF02 - Inspecionar e Descrever os Dados
+# =========================================
 
 def inspecionar_dados(df):
     """Exibe as informacoes estruturais do DataFrame."""
@@ -105,101 +126,200 @@ def inspecionar_dados(df):
     print(f"\nTipos de dados:\n{df.dtypes}")
     print(f"\nValores nulos por coluna:\n{df.isnull().sum()}")
     print(f"\nPrimeiros registros:\n{df.head()}")
+
     return df
-inspecionar_dados(df_bruto)
 
 
 # ============================================================
-# RF03 - Tratar os dados (datetime)
+# RF03 - TRATAR OS DADOS (DATETIME)
 # ============================================================
 
 def tratar_dados(df):
     """
     Trata o DataFrame de vendas.
 
+    Executa:
+        - Remoção de espaços extras nos textos.
+        - Conversão de datas e remoção de datas inválidas.
+        - Ajuste dos tipos numéricos.
+        - Geração do relatório de limpeza.
+
     Retorna:
-        (df_limpo, relatorio), onde relatorio é um dicionário
-        com as contagens de registros iniciais, convertidos e finais.
+        (df_limpo, relatorio)
     """
 
-    # Gerar e usar uma cópia para preservar o DataFrame original
+    # Preservar o DataFrame original.
     df_limpo = df.copy()
-    registros_iniciais = len(df_limpo)
-    tipos_originais = df.dtypes.copy()
 
-    # 1. Remover espaços extras nas colunas de texto
-    colunas_texto = ["cliente", "produto", "categoria", "regiao"]
-    textos_alterados = pd.Series(False, index=df.index)
+    registros_iniciais = len(df_limpo)
+
+    # Guardar os valores originais para comparar alterações reais.
+    valores_originais = df.copy()
+
+    # 1. REMOVER ESPAÇOS EXTRAS DOS TEXTOS
+    
+    colunas_texto = [
+        "cliente",
+        "produto",
+        "categoria",
+        "regiao"
+    ]
+
+    textos_alterados = pd.Series(
+        False,
+        index=df_limpo.index
+    )
 
     for coluna in colunas_texto:
-        texto_original = df[coluna]
-        texto_limpo = df_limpo[coluna].str.strip()
+        texto_original = df_limpo[coluna]
 
-        diferencas = (texto_original.ne(texto_limpo) & ~(texto_original.isna() & texto_limpo.isna())).fillna(False)
+        # Preservar valores ausentes sem transformá-los em texto.
+        texto_limpo = texto_original.str.strip()
+
+        diferencas = (
+            texto_original.ne(texto_limpo)
+            & ~(
+                texto_original.isna()
+                & texto_limpo.isna()
+            )
+        ).fillna(False)
+
         textos_alterados |= diferencas
         df_limpo[coluna] = texto_limpo
 
-    registros_com_texto_alterado = int(textos_alterados.sum())
+    registros_com_texto_alterado = int(
+        textos_alterados.sum()
+    )
 
-    # 2. Converter as datas e remover as inválidas
-    datas_convertidas = pd.to_datetime(df_limpo["data_venda"], errors="coerce")
+    # 2. CONVERTER DATAS E REMOVER DATAS INVÁLIDAS
+   
+    datas_originais = df_limpo["data_venda"]
+
+    datas_convertidas = pd.to_datetime(
+        datas_originais,
+        errors="coerce"
+    )
 
     datas_validas = int(datas_convertidas.notna().sum())
     datas_invalidas = int(datas_convertidas.isna().sum())
 
+    # Contar datas válidas cujo valor precisou ser interpretado
+    # ou normalizado para datetime, sem contar apenas a mudança
+    # de tipo como alteração de valor.
+    datas_originais_convertidas = pd.to_datetime(
+        datas_originais,
+        errors="coerce"
+    )
+
+    conversao_data = int(
+        datas_originais.notna().sum()
+        if not pd.api.types.is_datetime64_any_dtype(
+            datas_originais
+        )
+        else 0
+    )
+
     df_limpo["data_venda"] = datas_convertidas
-    df_limpo = df_limpo.dropna(subset=["data_venda"])
 
-    # 3. Ajustar os tipos numéricos
-    df_limpo["quantidade"] = df_limpo["quantidade"].astype(int)
-    df_limpo["preco_unitario"] = (df_limpo["preco_unitario"].astype(float))
+    # Remover somente registros sem uma data válida.
+    df_limpo = df_limpo.dropna(
+        subset=["data_venda"]
+    ).copy()
 
-    # Contar conversões de tipo por motivo
-    conversao_data = (
-        datas_validas
-        if tipos_originais["data_venda"] != df_limpo["data_venda"].dtype
-        else 0
+    # 3. AJUSTAR OS TIPOS NUMÉRICOS
+    
+    quantidade_original = df_limpo["quantidade"].copy()
+    preco_original = df_limpo["preco_unitario"].copy()
+
+    quantidade_convertida = pd.to_numeric(
+        quantidade_original,
+        errors="raise"
     )
 
-    conversao_quantidade = (
+    preco_convertido = pd.to_numeric(
+        preco_original,
+        errors="raise"
+    )
+
+    # Verificar se houve mudança de representação/tipo.
+    conversao_quantidade = int(
         len(df_limpo)
-        if tipos_originais["quantidade"] != df_limpo["quantidade"].dtype
+        if not pd.api.types.is_integer_dtype(
+            quantidade_original.dtype
+        )
         else 0
     )
 
-    conversao_preco = (
+    conversao_preco = int(
         len(df_limpo)
-        if tipos_originais["preco_unitario"]
-        != df_limpo["preco_unitario"].dtype
+        if not pd.api.types.is_float_dtype(
+            preco_original.dtype
+        )
         else 0
     )
 
-    # Identificar registros finais que sofreram alguma alteração
-    registros_alterados = pd.Series(False, index=df_limpo.index)
+    df_limpo["quantidade"] = quantidade_convertida.astype(int)
+    df_limpo["preco_unitario"] = preco_convertido.astype(float)
 
-    # A conversão de texto para datetime altera o tipo das datas válidas
-    if tipos_originais["data_venda"] != df_limpo["data_venda"].dtype:
-        registros_alterados[:] = True
+    # 4. IDENTIFICAR REGISTROS ALTERADOS
+    
+    # Considerar somente os registros que permaneceram após
+    # a remoção de datas inválidas.
+    textos_finais_alterados = textos_alterados.loc[
+        df_limpo.index
+    ]
 
-    # Considerar alterações de texto
-    registros_alterados |= textos_alterados.loc[df_limpo.index]
+    registros_alterados = textos_finais_alterados.copy()
 
-    # Considerar alterações de tipo ou de valor nas colunas numéricas
+    # Comparar os valores numéricos antes e depois da limpeza.
+    # Mudança apenas de tipo não significa, por si só,
+    # mudança de valor.
     for coluna in ["quantidade", "preco_unitario"]:
-        if tipos_originais[coluna] != df_limpo[coluna].dtype:
-            registros_alterados[:] = True
-        else:
-            diferencas = (
-                df.loc[df_limpo.index, coluna]
-                .ne(df_limpo[coluna])
-                .fillna(False)
+        valores_antes = pd.to_numeric(
+            valores_originais.loc[df_limpo.index, coluna],
+            errors="coerce"
+        )
+
+        valores_depois = df_limpo[coluna]
+
+        diferencas = (
+            valores_antes.ne(valores_depois)
+            & ~(
+                valores_antes.isna()
+                & valores_depois.isna()
             )
-            registros_alterados |= diferencas
+        ).fillna(False)
 
-    registros_convertidos_de_tipo = int(registros_alterados.sum())
-    registros_sem_alteracao = int((~registros_alterados).sum())
+        registros_alterados |= diferencas
 
-    # 4. Montar o relatório de limpeza
+    # Registros com datas válidas são considerados alterados
+    # quando o conteúdo original não era um datetime.
+    # Essa informação é separada das alterações de texto e
+    # dos valores numéricos no relatório.
+    datas_originais_finais = valores_originais.loc[
+        df_limpo.index,
+        "data_venda"
+    ]
+
+    datas_ja_datetime = pd.api.types.is_datetime64_any_dtype(
+        datas_originais_finais.dtype
+    )
+
+    if not datas_ja_datetime:
+        # A conversão do tipo, sozinha, não marca o registro
+        # como alterado em registros_convertidos_de_tipo.
+        pass
+
+    registros_convertidos_de_tipo = int(
+        registros_alterados.sum()
+    )
+
+    registros_sem_alteracao = int(
+        (~registros_alterados).sum()
+    )
+    
+    # 5. MONTAR O RELATÓRIO DE LIMPEZA
+    
     registros_finais = len(df_limpo)
     registros_removidos = registros_iniciais - registros_finais
 
@@ -215,7 +335,8 @@ def tratar_dados(df):
         "registros_removidos": registros_removidos,
         "registros_finais": registros_finais,
     }
-
+        # 6. EXIBIR O RELATÓRIO
+   
     print("\n=== RELATÓRIO DE LIMPEZA — RF03 ===")
     print("Registros iniciais:", registros_iniciais)
 
@@ -226,8 +347,8 @@ def tratar_dados(df):
     print("Registros com texto alterado:", registros_com_texto_alterado)
 
     print("\nResultado da limpeza:")
-    print("Registros convertidos de tipo:", registros_convertidos_de_tipo)
-    print("Registros sem alteração:", registros_sem_alteracao)
+    print("Registros alterados nos valores:", registros_convertidos_de_tipo)
+    print("Registros sem alteração nos valores:", registros_sem_alteracao)
     print("Datas inválidas encontradas:", datas_invalidas)
     print("Registros removidos:", registros_removidos)
     print("Registros finais:", registros_finais)
@@ -235,16 +356,9 @@ def tratar_dados(df):
     return df_limpo, relatorio
 
 
-# Executar o RF03
-df_limpo, relatorio = tratar_dados(df_bruto)
-
-
 # ===============================================================
 # RF04 - Criar Colunas Derivadas com Transformações Condicionais
 # ===============================================================
-
-
-# RF04 - Criar Colunas Derivadas com Transformações Condicionais
 
 def criar_colunas_derivadas(df):
     """
@@ -262,10 +376,10 @@ def criar_colunas_derivadas(df):
         df_rf04["quantidade"] * df_rf04["preco_unitario"]
     )
 
-    # 2. Criar a coluna mes(nº mes) extraído da data com .dt.month
+    # 2. Criar a coluna mes (nº do mês) extraída da data com .dt.month
     df_rf04["mes"] = df_rf04["data_venda"].dt.month
 
-    # 3. Criar a coluna nome do mes em portugues com um dicionário de mapeamento
+    # 3. Criar a coluna nome do mês em português com um dicionário de mapeamento
     meses = {
         1: "Janeiro",
         2: "Fevereiro",
@@ -331,11 +445,10 @@ def criar_colunas_derivadas(df):
     return df_rf04
 
 
-# Executar o RF04 com o DataFrame limpo do RF03
-df_rf04 = criar_colunas_derivadas(df_limpo)
+# ===============================================================
+# RF04 - Exibir resultados
+# ===============================================================
 
-
-# Exibir os resultados do RF04
 def exibir_resultados_rf04(df_rf04):
     """
     Exibe os resultados das colunas derivadas do RF04.
@@ -345,6 +458,7 @@ def exibir_resultados_rf04(df_rf04):
     print("Dimensões:", df_rf04.shape)
     print("\nColunas:", list(df_rf04.columns))
     print("\nPrimeiros registros:")
+
     print(
         df_rf04.head().assign(
             data_venda=df_rf04["data_venda"].head().dt.strftime("%d-%m-%Y")
@@ -369,9 +483,6 @@ def exibir_resultados_rf04(df_rf04):
     )
 
     return df_rf04
-
-# Executar a exibição dos resultados do RF04
-df_rf04 = exibir_resultados_rf04(df_rf04)
 
 
 # ============================================================
@@ -434,13 +545,6 @@ def exibir_teste_funcao_ordem_superior(df):
     return df
 
 
-# Executar o teste da função de ordem superior
-
-df_rf08 = testar_funcao_ordem_superior(df_rf04)
-
-df_rf08 = exibir_teste_funcao_ordem_superior(df_rf08)
-
-
 # ============================================================
 # B03 - Tabela cruzada mês x categoria
 # ============================================================
@@ -474,12 +578,6 @@ def exibir_tabela_mes_categoria(tabela_mes_categoria):
     print(tabela_mes_categoria)
 
     return tabela_mes_categoria
-
-
-# Executar a tabela cruzada B03
-tabela_mes_categoria = criar_tabela_mes_categoria(df_rf04)
-tabela_mes_categoria = exibir_tabela_mes_categoria(tabela_mes_categoria)
-
 
 
 # ============================================================
@@ -530,10 +628,6 @@ def calcular_metricas(df):
     return metricas
 
 
-# Chamar a função e guardar os resultados
-metricas = calcular_metricas(df_rf04)
-
-
 # Exibir os resultados de Métricas Agregadas com groupby
 def exibir_metricas(metricas):
     """
@@ -562,10 +656,6 @@ def exibir_metricas(metricas):
     }))
 
     return metricas
-
-
-# Executar a exibição das métricas
-metricas = exibir_metricas(metricas)
 
 
 # ============================================================
@@ -602,24 +692,38 @@ def analisar_vendas_por_dia_semana(df):
     # Agrupar as vendas por dia da semana
     vendas_por_dia = df_extra2.groupby("dia_semana").agg(
         quantidade_vendas=("id_venda", "count"),
-        receita_total=("receita_total", "sum")).reset_index()
+        receita_total=("receita_total", "sum")
+    ).reset_index()
 
     # Identificar o dia com maior e menor quantidade de vendas
-    maior_fluxo = vendas_por_dia.loc[vendas_por_dia["quantidade_vendas"].idxmax()]
+    maior_fluxo = vendas_por_dia.loc[
+        vendas_por_dia["quantidade_vendas"].idxmax()
+    ]
 
-    menor_fluxo = vendas_por_dia.loc[vendas_por_dia["quantidade_vendas"].idxmin()]
+    menor_fluxo = vendas_por_dia.loc[
+        vendas_por_dia["quantidade_vendas"].idxmin()
+    ]
 
     return df_extra2, vendas_por_dia, maior_fluxo, menor_fluxo
 
 
-def exibir_analise_vendas_por_dia_semana(df_extra2, vendas_por_dia, maior_fluxo, menor_fluxo):
+def exibir_analise_vendas_por_dia_semana(
+    df_extra2,
+    vendas_por_dia,
+    maior_fluxo,
+    menor_fluxo
+):
     """
     Exibe os resultados da análise de vendas por dia da semana.
     Retorna a tabela de vendas por dia.
     """
     # Exibir as novas colunas
     print("\n=== DIAS DA SEMANA E FIM DE SEMANA ===")
-    print(df_extra2[["data_venda", "dia_semana", "fim_de_semana"]].head(10))
+    print(
+        df_extra2[
+            ["data_venda", "dia_semana", "fim_de_semana"]
+        ].head(10)
+    )
 
     # Conferir os tipos de dados
     print(df_extra2[["dia_semana", "fim_de_semana"]].dtypes)
@@ -637,12 +741,6 @@ def exibir_analise_vendas_por_dia_semana(df_extra2, vendas_por_dia, maior_fluxo,
     print(menor_fluxo)
 
     return vendas_por_dia
-
-
-# Executar a análise de vendas por dia da semana
-df_extra2, vendas_por_dia, maior_fluxo, menor_fluxo = (analisar_vendas_por_dia_semana(df_rf04))
-
-vendas_por_dia = exibir_analise_vendas_por_dia_semana(df_extra2, vendas_por_dia, maior_fluxo, menor_fluxo)
 
 
 # ============================================================
@@ -667,10 +765,6 @@ def segmentar_clientes(df):
     return clientes
 
 
-# Segmentar clientes
-clientes_segmentados = segmentar_clientes(df_rf04)
-
-
 # Exibir os resultados da segmentação de clientes
 def exibir_segmentacao_clientes(clientes_segmentados):
     """
@@ -693,10 +787,6 @@ def exibir_segmentacao_clientes(clientes_segmentados):
     return clientes_segmentados
 
 
-# Executar a exibição da segmentação de clientes
-clientes_segmentados = exibir_segmentacao_clientes(clientes_segmentados)
-
-
 # ============================================================
 # RF07 - CRIAR VISUALIZAÇÕES COM MATPLOTLIB
 # ============================================================
@@ -713,7 +803,14 @@ plt.rcParams["figure.figsize"] = (12, 6)
 plt.rcParams["axes.titlesize"] = 14
 
 # Criar a pasta para salvar os gráficos
-os.makedirs("outputs/graficos", exist_ok=True)
+pasta_projeto = os.path.dirname(os.path.abspath(__file__))
+pasta_graficos = os.path.join(
+    pasta_projeto,
+    "outputs",
+    "graficos"
+)
+os.makedirs(pasta_graficos, exist_ok=True)
+
 
 # --- Figura 1: Receita total por mês ---
 def criar_grafico_receita_por_mes(metricas):
@@ -722,14 +819,31 @@ def criar_grafico_receita_por_mes(metricas):
     Retorna o caminho do arquivo gerado.
     """
     fig, ax = plt.subplots(figsize=(12, 6))
-    ax.plot(metricas["por_mes"]["mes"], metricas["por_mes"]["receita_total"], marker="o", markersize=7, linewidth=2.5, color="tab:pink", markerfacecolor="tab:cyan", markeredgecolor="white", label="Receita total")
+    ax.plot(
+        metricas["por_mes"]["mes"],
+        metricas["por_mes"]["receita_total"],
+        marker="o",
+        markersize=7,
+        linewidth=2.5,
+        color="tab:pink",
+        markerfacecolor="tab:cyan",
+        markeredgecolor="white",
+        label="Receita total"
+    )
     ax.set_title("Receita Total por Mês")
     ax.set_xlabel("Mês")
     ax.set_ylabel("Receita Total (R$)")
     ax.legend()
     plt.tight_layout()
 
-    caminho_grafico = "outputs/graficos/receita_por_mes.png"
+    pasta_projeto = os.path.dirname(os.path.abspath(__file__))
+    caminho_grafico = os.path.join(
+        pasta_projeto,
+        "outputs",
+        "graficos",
+        "receita_por_mes.png"
+    )
+
     plt.savefig(caminho_grafico, dpi=150)
     plt.show()
     plt.close()
@@ -741,11 +855,6 @@ def criar_grafico_receita_por_mes(metricas):
         display(Image(filename=caminho_grafico))
 
     return caminho_grafico
-
-
-# Executar a Figura 1
-caminho_grafico = criar_grafico_receita_por_mes(metricas)
-
 
 
 # ============================================================
@@ -779,7 +888,14 @@ def criar_grafico_top_produtos(metricas):
     plt.tight_layout()
 
     # Salvar o gráfico
-    caminho_grafico = "outputs/graficos/top_produtos.png"
+    pasta_projeto = os.path.dirname(os.path.abspath(__file__))
+    caminho_grafico = os.path.join(
+        pasta_projeto,
+        "outputs",
+        "graficos",
+        "top_produtos.png"
+    )
+
     plt.savefig(caminho_grafico, dpi=150)
     plt.show()
     plt.close()
@@ -791,10 +907,6 @@ def criar_grafico_top_produtos(metricas):
         display(Image(filename=caminho_grafico))
 
     return caminho_grafico
-
-
-# Executar a Figura 2
-caminho_grafico = criar_grafico_top_produtos(metricas)
 
 
 # ============================================================
@@ -840,7 +952,14 @@ def criar_grafico_quantidade_vs_receita(df_rf04):
     plt.tight_layout()
 
     # Salvar o gráfico
-    caminho_grafico = "outputs/graficos/quantidade_vs_receita.png"
+    pasta_projeto = os.path.dirname(os.path.abspath(__file__))
+    caminho_grafico = os.path.join(
+        pasta_projeto,
+        "outputs",
+        "graficos",
+        "quantidade_vs_receita.png"
+    )
+
     plt.savefig(caminho_grafico, dpi=150)
     plt.show()
     plt.close()
@@ -852,10 +971,6 @@ def criar_grafico_quantidade_vs_receita(df_rf04):
         display(Image(filename=caminho_grafico))
 
     return caminho_grafico
-
-
-# Executar a Figura 3
-caminho_grafico = criar_grafico_quantidade_vs_receita(df_rf04)
 
 
 # ============================================================
@@ -915,7 +1030,14 @@ def criar_grafico_receita_por_regiao(metricas):
     plt.tight_layout()
 
     # Salvar o gráfico
-    caminho_grafico = "outputs/graficos/receita_por_regiao.png"
+    pasta_projeto = os.path.dirname(os.path.abspath(__file__))
+    caminho_grafico = os.path.join(
+        pasta_projeto,
+        "outputs",
+        "graficos",
+        "receita_por_regiao.png"
+    )
+
     plt.savefig(caminho_grafico, dpi=150)
     plt.show()
     plt.close()
@@ -927,10 +1049,6 @@ def criar_grafico_receita_por_regiao(metricas):
         display(Image(filename=caminho_grafico))
 
     return caminho_grafico
-
-
-# Executar o gráfico de receita total por região
-caminho_grafico = criar_grafico_receita_por_regiao(metricas)
 
 
 # ============================================================
@@ -1067,8 +1185,19 @@ def criar_painel_resumo(metricas, df_rf04):
     plt.tight_layout(rect=[0, 0, 1, 0.95])
 
     # Salvar o painel
-    caminho_grafico = "outputs/graficos/painel_resumo.png"
-    plt.savefig(caminho_grafico, dpi=150, bbox_inches="tight")
+    pasta_projeto = os.path.dirname(os.path.abspath(__file__))
+    caminho_grafico = os.path.join(
+        pasta_projeto,
+        "outputs",
+        "graficos",
+        "painel_resumo.png"
+    )
+
+    plt.savefig(
+        caminho_grafico,
+        dpi=150,
+        bbox_inches="tight"
+    )
     plt.show()
     plt.close()
 
@@ -1079,10 +1208,6 @@ def criar_painel_resumo(metricas, df_rf04):
         display(Image(filename=caminho_grafico))
 
     return caminho_grafico
-
-
-# Executar a Figura 4
-caminho_grafico = criar_painel_resumo(metricas, df_rf04)
 
 
 # ============================================================
@@ -1124,7 +1249,15 @@ def criar_grafico_receita_por_mes_categoria(tabela_mes_categoria):
 
     plt.tight_layout()
 
-    caminho_grafico = "outputs/graficos/receita_por_mes_categoria.png"
+    # Salvar o gráfico na pasta outputs/graficos do projeto
+    pasta_projeto = os.path.dirname(os.path.abspath(__file__))
+    caminho_grafico = os.path.join(
+        pasta_projeto,
+        "outputs",
+        "graficos",
+        "receita_por_mes_categoria.png"
+    )
+
     plt.savefig(caminho_grafico, dpi=150)
     plt.show()
     plt.close()
@@ -1135,10 +1268,6 @@ def criar_grafico_receita_por_mes_categoria(tabela_mes_categoria):
         display(Image(filename=caminho_grafico))
 
     return caminho_grafico
-
-
-# Executar o gráfico bônus B03
-caminho_grafico = criar_grafico_receita_por_mes_categoria(tabela_mes_categoria)
 
 
 # ============================================================
@@ -1186,7 +1315,15 @@ def criar_grafico_vendas_por_dia_semana(vendas_por_dia):
 
     plt.tight_layout()
 
-    caminho_grafico = "outputs/graficos/vendas_por_dia_semana.png"
+    # Salvar o gráfico na pasta outputs/graficos do projeto
+    pasta_projeto = os.path.dirname(os.path.abspath(__file__))
+    caminho_grafico = os.path.join(
+        pasta_projeto,
+        "outputs",
+        "graficos",
+        "vendas_por_dia_semana.png"
+    )
+
     plt.savefig(caminho_grafico, dpi=150)
     plt.show()
     plt.close()
@@ -1197,11 +1334,6 @@ def criar_grafico_vendas_por_dia_semana(vendas_por_dia):
         display(Image(filename=caminho_grafico))
 
     return caminho_grafico
-
-
-# Executar o gráfico extra 1
-caminho_grafico = criar_grafico_vendas_por_dia_semana(vendas_por_dia)
-
 
 # ============================================================
 # GRÁFICO EXTRA 2 - RECEITA POR CATEGORIA E PRODUTO
@@ -1255,8 +1387,15 @@ def criar_grafico_receita_categoria_produtos(metricas, df_rf04):
     # Ajustar o layout
     plt.tight_layout()
 
-    # Salvar o gráfico
-    caminho_grafico = "outputs/graficos/receita_categoria_produtos.png"
+    # Salvar o gráfico na pasta outputs/graficos do projeto
+    pasta_projeto = os.path.dirname(os.path.abspath(__file__))
+    caminho_grafico = os.path.join(
+        pasta_projeto,
+        "outputs",
+        "graficos",
+        "receita_categoria_produtos.png"
+    )
+
     plt.savefig(caminho_grafico, dpi=150)
     plt.show()
     plt.close()
@@ -1268,10 +1407,6 @@ def criar_grafico_receita_categoria_produtos(metricas, df_rf04):
         display(Image(filename=caminho_grafico))
 
     return caminho_grafico
-
-
-# Executar o gráfico extra 2
-caminho_grafico = criar_grafico_receita_categoria_produtos(metricas, df_rf04)
 
 
 # ============================================================
@@ -1330,10 +1465,15 @@ def criar_grafico_receita_por_trimestre_top5(df_rf04, metricas):
 
     plt.tight_layout()
 
-    # Salvar o gráfico
-    caminho_grafico = (
-        "outputs/graficos/receita_por_trimestre_top5.png"
+    # Salvar o gráfico na pasta outputs/graficos do projeto
+    pasta_projeto = os.path.dirname(os.path.abspath(__file__))
+    caminho_grafico = os.path.join(
+        pasta_projeto,
+        "outputs",
+        "graficos",
+        "receita_por_trimestre_top5.png"
     )
+
     plt.savefig(caminho_grafico, dpi=150)
     plt.show()
     plt.close()
@@ -1347,13 +1487,9 @@ def criar_grafico_receita_por_trimestre_top5(df_rf04, metricas):
     return caminho_grafico
 
 
-# Executar o gráfico extra 3
-caminho_grafico = criar_grafico_receita_por_trimestre_top5(df_rf04, metricas)
-
-
-# ============================================================
+# ========================================================================
 # GRÁFICO EXTRA 4 - RECEITA POR SEGMENTO DE CLIENTE E CATEGORIA DE PRODUTO
-# ============================================================
+# ========================================================================
 
 def criar_grafico_receita_segmento_categoria(df_rf04, clientes_segmentados):
     """
@@ -1408,8 +1544,12 @@ def criar_grafico_receita_segmento_categoria(df_rf04, clientes_segmentados):
 
     plt.tight_layout()
 
-    caminho_grafico = (
-        "outputs/graficos/"
+    # Salvar o gráfico na pasta outputs/graficos do projeto
+    pasta_projeto = os.path.dirname(os.path.abspath(__file__))
+    caminho_grafico = os.path.join(
+        pasta_projeto,
+        "outputs",
+        "graficos",
         "receita_segmento_cliente_categoria_produto.png"
     )
 
@@ -1423,10 +1563,6 @@ def criar_grafico_receita_segmento_categoria(df_rf04, clientes_segmentados):
         display(Image(filename=caminho_grafico))
 
     return caminho_grafico
-
-
-# Executar o gráfico extra 4
-caminho_grafico = criar_grafico_receita_segmento_categoria(df_rf04, clientes_segmentados)
 
 
 # ==============================================================
@@ -1510,9 +1646,13 @@ def criar_grafico_clientes_regiao_segmento(df_rf04, clientes_segmentados):
 
     plt.tight_layout()
 
-    # Salvar o gráfico
-    caminho_grafico = (
-        "outputs/graficos/quantidade_clientes_regiao_segmento.png"
+    # Salvar o gráfico na pasta outputs/graficos do projeto
+    pasta_projeto = os.path.dirname(os.path.abspath(__file__))
+    caminho_grafico = os.path.join(
+        pasta_projeto,
+        "outputs",
+        "graficos",
+        "quantidade_clientes_regiao_segmento.png"
     )
 
     plt.savefig(caminho_grafico, dpi=150, bbox_inches="tight")
@@ -1526,10 +1666,6 @@ def criar_grafico_clientes_regiao_segmento(df_rf04, clientes_segmentados):
         display(Image(filename=caminho_grafico))
 
     return caminho_grafico
-
-
-# Executar o gráfico extra 5
-caminho_grafico = criar_grafico_clientes_regiao_segmento(df_rf04, clientes_segmentados)
 
  
 # ======================================================================
@@ -1578,8 +1714,13 @@ def criar_mapa_calor_receita_produto_categoria(df_rf04):
 
     fig.tight_layout()
 
-    caminho_grafico = (
-        "outputs/graficos/mapa_calor_receita_produto_categoria.png"
+    # Salvar o gráfico na pasta outputs/graficos do projeto
+    pasta_projeto = os.path.dirname(os.path.abspath(__file__))
+    caminho_grafico = os.path.join(
+        pasta_projeto,
+        "outputs",
+        "graficos",
+        "mapa_calor_receita_produto_categoria.png"
     )
 
     fig.savefig(
@@ -1600,136 +1741,223 @@ def criar_mapa_calor_receita_produto_categoria(df_rf04):
     return caminho_grafico
 
 
-# Executar o gráfico bônus B04
-caminho_grafico = criar_mapa_calor_receita_produto_categoria(df_rf04)
-
-
 # ============================================================
-# RF09 - Exportar Resultados em CSV e JSON
+# RF09 - PREPARAR ESTATÍSTICAS GERAIS E EXPORTAR RESULTADOS
 # ============================================================
 
-def exportar_resultados(metricas, clientes, estatisticas):
-    """Exporta os resultados do projeto em CSV e JSON."""
+import os
+import json
+import numpy as np
 
-    from decimal import Decimal, ROUND_DOWN
 
-    pasta_projeto = os.path.dirname(os.path.abspath(__file__))
-    pasta_outputs = os.path.join(pasta_projeto, "outputs")
-    os.makedirs(pasta_outputs, exist_ok=True)
+def preparar_estatisticas_gerais(
+    metricas,
+    df_rf04,
+    clientes_segmentados
+):
+    """
+    Prepara as estatísticas gerais do SalesInsight PY.
+    """
 
-    # Preparar cópias dos DataFrames para exportação
-    metricas_exportacao = metricas["por_mes"].copy()
-    clientes_exportacao = clientes.copy()
+    estatisticas = {}
 
-    # Identificar as colunas que contêm valores monetários
-    termos_monetarios = (
-        "receita",
-        "preco",
-        "preço",
-        "ticket",
-        "gasto",
-        "faturamento",
-        "valor"
+    # 1. ESTATÍSTICAS GERAIS DO PERÍODO
+    receita_total_periodo = (
+        metricas["por_mes"]["receita_total"].sum()
     )
 
-    # Formatar os valores monetários para visualização, sem arredondar
-    def formatar_valor_monetario(valor):
-        if pd.isna(valor):
-            return ""
+    quantidade_total_vendida = (
+        metricas["por_mes"]["quantidade_vendida"].sum()
+    )
 
-        valor_decimal = Decimal(str(valor)).quantize(
-            Decimal("0.01"),
-            rounding=ROUND_DOWN
+    total_vendas = (
+        metricas["por_mes"]["n_vendas"].sum()
+    )
+
+    estatisticas["receita_total_periodo"] = receita_total_periodo
+    estatisticas["quantidade_total_vendida"] = quantidade_total_vendida
+    estatisticas["total_vendas"] = total_vendas
+
+    estatisticas["ticket_medio_geral"] = (
+        receita_total_periodo / total_vendas
+        if total_vendas > 0
+        else 0.0
+    )
+
+    # 2. ESTATÍSTICAS POR TRIMESTRE
+    metricas_por_trimestre = (
+        df_rf04.groupby("trimestre")
+        .agg(
+            receita_total=("receita_total", "sum"),
+            quantidade_vendida=("quantidade", "sum"),
+            n_vendas=("id_venda", "count")
+        )
+        .reset_index()
+    )
+
+    for _, linha in metricas_por_trimestre.iterrows():
+        trimestre = linha["trimestre"]
+
+        vendas_trimestre = linha["n_vendas"]
+
+        estatisticas[f"total_vendas_{trimestre}"] = (
+            vendas_trimestre
         )
 
-        valor_formatado = f"{valor_decimal:,.2f}"
-
-        return (
-            valor_formatado
-            .replace(",", "X")
-            .replace(".", ",")
-            .replace("X", ".")
+        estatisticas[f"ticket_medio_{trimestre}"] = (
+            linha["receita_total"] / vendas_trimestre
+            if vendas_trimestre > 0
+            else 0.0
         )
 
-    # Exportar métricas por mês
-    colunas_monetarias = [
-        coluna
-        for coluna in metricas_exportacao.columns
-        if any(
-            termo in str(coluna).lower()
-            for termo in termos_monetarios
-        )
-        and pd.api.types.is_numeric_dtype(
-            metricas_exportacao[coluna]
-        )
-    ]
+    # 3. GASTO MÉDIO POR CLIENTE EM CADA SEGMENTO
+    gasto_medio_segmento = (
+        clientes_segmentados
+        .groupby("segmento")["total_gasto"]
+        .mean()
+    )
 
-    for coluna in colunas_monetarias:
-        metricas_exportacao[coluna] = (
-            metricas_exportacao[coluna]
-            .apply(formatar_valor_monetario)
-        )
+    for segmento, valor in gasto_medio_segmento.items():
+        estatisticas[f"gasto_medio_cliente_{segmento}"] = valor
 
-    metricas_exportacao.to_csv(
-        os.path.join(pasta_outputs, "metricas_por_mes.csv"),
+    # 4. TICKET MÉDIO POR SEGMENTO E CATEGORIA
+    clientes_para_merge = (
+        clientes_segmentados[["cliente", "segmento"]]
+        .drop_duplicates(subset=["cliente"])
+    )
+
+    df_segmento_categoria = df_rf04.merge(
+        clientes_para_merge,
+        on="cliente",
+        how="left"
+    )
+
+    metricas_segmento_categoria = (
+        df_segmento_categoria
+        .groupby(["segmento", "categoria"])
+        .agg(
+            receita_total=("receita_total", "sum"),
+            n_vendas=("id_venda", "count")
+        )
+        .reset_index()
+    )
+
+    metricas_segmento_categoria["ticket_medio"] = (
+        metricas_segmento_categoria["receita_total"]
+        / metricas_segmento_categoria["n_vendas"].replace(0, np.nan)
+    )
+
+    metricas_segmento_categoria["ticket_medio"] = (
+        metricas_segmento_categoria["ticket_medio"].fillna(0)
+    )
+
+    for _, linha in metricas_segmento_categoria.iterrows():
+        segmento = linha["segmento"]
+        categoria = linha["categoria"]
+
+        chave = f"ticket_medio_{segmento}_{categoria}"
+
+        estatisticas[chave] = linha["ticket_medio"]
+
+    return estatisticas
+
+
+
+# ============================================================
+# RF09 - EXPORTAR RESULTADOS
+# ============================================================
+
+def exportar_resultados(
+    metricas,
+    clientes_segmentados,
+    estatisticas
+):
+    """
+    Exporta os resultados para a pasta outputs e exibe
+    as estatísticas gerais no terminal.
+    """
+
+    pasta_projeto = os.path.dirname(
+        os.path.abspath(__file__)
+    )
+
+    pasta_outputs = os.path.join(
+        pasta_projeto,
+        "outputs"
+    )
+
+    os.makedirs(
+        pasta_outputs,
+        exist_ok=True
+    )
+
+    # 1. EXPORTAR MÉTRICAS MENSAIS
+    caminho_metricas = os.path.join(
+        pasta_outputs,
+        "metricas_por_mes.csv"
+    )
+
+    metricas["por_mes"].to_csv(
+        caminho_metricas,
         index=False,
         encoding="utf-8-sig"
     )
 
-    # Exportar segmentação de clientes
-    colunas_monetarias = [
-        coluna
-        for coluna in clientes_exportacao.columns
-        if any(
-            termo in str(coluna).lower()
-            for termo in termos_monetarios
-        )
-        and pd.api.types.is_numeric_dtype(
-            clientes_exportacao[coluna]
-        )
-    ]
+    # 2. EXPORTAR SEGMENTAÇÃO DE CLIENTES
+    caminho_segmentacao = os.path.join(
+        pasta_outputs,
+        "segmentacao_clientes.csv"
+    )
 
-    for coluna in colunas_monetarias:
-        clientes_exportacao[coluna] = (
-            clientes_exportacao[coluna]
-            .apply(formatar_valor_monetario)
-        )
-
-    clientes_exportacao.to_csv(
-        os.path.join(pasta_outputs, "segmentacao_clientes.csv"),
+    clientes_segmentados.to_csv(
+        caminho_segmentacao,
         index=False,
         encoding="utf-8-sig"
     )
 
-    # Preparar os valores numéricos para gravação no JSON
-    serializavel = {
-        chave: round(float(valor), 2)
-        for chave, valor in estatisticas.items()
-    }
+    # 3. PREPARAR VALORES PARA EXPORTAÇÃO JSON
+    estatisticas_json = {}
 
-    caminho = os.path.join(pasta_outputs, "estatisticas_gerais.json")
+    for chave, valor in estatisticas.items():
+        if isinstance(valor, np.generic):
+            valor = valor.item()
 
-    # Gravar as estatísticas gerais em JSON
-    with open(caminho, "w", encoding="utf-8") as arquivo:
+        estatisticas_json[chave] = valor
+
+    # 4. EXPORTAR ESTATÍSTICAS GERAIS EM JSON
+    caminho_estatisticas = os.path.join(
+        pasta_outputs,
+        "estatisticas_gerais.json"
+    )
+
+    with open(
+        caminho_estatisticas,
+        "w",
+        encoding="utf-8"
+    ) as arquivo:
         json.dump(
-            serializavel,
+            estatisticas_json,
             arquivo,
+            ensure_ascii=False,
             indent=4,
-            ensure_ascii=False
+            allow_nan=False
         )
 
-    # Ler o JSON novamente para confirmar a gravação
-    with open(caminho, "r", encoding="utf-8") as arquivo:
-        estatisticas_lidas = json.load(arquivo)
-
-    # Exibir as estatísticas gerais
+    # 5. EXIBIR TODAS AS ESTATÍSTICAS NO TERMINAL
     print("\n=== RF09 - ESTATÍSTICAS GERAIS EXPORTADAS ===")
 
-    for chave, valor in estatisticas_lidas.items():
-        if (
-            "receita_total" in chave
-            or "ticket_medio" in chave
-            or "gasto_medio_cliente" in chave
+    for chave, valor in estatisticas.items():
+
+        if isinstance(valor, np.generic):
+            valor = valor.item()
+
+        if any(
+            termo in chave
+            for termo in [
+                "receita_total",
+                "ticket_medio",
+                "gasto_medio_cliente"
+            ]
         ):
             valor_formatado = (
                 f"R$ {valor:,.2f}"
@@ -1737,90 +1965,366 @@ def exportar_resultados(metricas, clientes, estatisticas):
                 .replace(".", ",")
                 .replace("X", ".")
             )
+
             print(f"{chave}: {valor_formatado}")
+
         else:
             print(f"{chave}: {valor}")
 
-    return estatisticas_lidas
+    # 6. INFORMAR OS ARQUIVOS EXPORTADOS
+    print("\n=== RF09 - EXPORTAÇÃO CONCLUÍDA ===")
+
+    print(f"Métricas mensais: {caminho_metricas}")
+    print(f"Segmentação de clientes: {caminho_segmentacao}")
+    print(f"Estatísticas gerais: {caminho_estatisticas}")
+
+    return {
+        "metricas_por_mes": caminho_metricas,
+        "segmentacao_clientes": caminho_segmentacao,
+        "estatisticas_gerais": caminho_estatisticas
+    }
 
 
-# Preparar as estatísticas gerais
-estatisticas = {}
+# ============================================================
+# RF10 - INTEGRAÇÃO E EXECUÇÃO COMPLETA DO PROJETO
+# ============================================================
 
-# 1. Estatísticas gerais do período
-receita_total_periodo = metricas["por_mes"]["receita_total"].sum()
-quantidade_total_vendida = metricas["por_mes"]["quantidade_vendida"].sum()
-total_vendas = metricas["por_mes"]["n_vendas"].sum()
+class AnalisadorDeVendas:
+    """
+    Coordena a execução ponta a ponta do SalesInsight PY,
+    integrando as funções existentes de RF01 a RF09.
+    """
 
-estatisticas["receita_total_periodo"] = receita_total_periodo
-estatisticas["quantidade_total_vendida"] = quantidade_total_vendida
-estatisticas["total_vendas"] = total_vendas
-estatisticas["ticket_medio_geral"] = (
-    receita_total_periodo / total_vendas
-)
+    def __init__(self):
+        # Caminhos absolutos baseados na pasta deste arquivo.
+        self.pasta_projeto = os.path.dirname(os.path.abspath(__file__))
+        self.caminho_csv = os.path.join(
+            self.pasta_projeto,
+            "vendas.csv"
+        )
+        self.pasta_outputs = os.path.join(
+            self.pasta_projeto,
+            "outputs"
+        )
 
-# 2. Estatísticas por trimestre
-metricas_por_trimestre = (
-    df_rf04.groupby("trimestre")
-    .agg(
-        receita_total=("receita_total", "sum"),
-        quantidade_vendida=("quantidade", "sum"),
-        n_vendas=("id_venda", "count")
-    )
-    .reset_index()
-)
+        # DataFrames utilizados durante a execução.
+        self.df_bruto = None
+        self.df_limpo = None
+        self.df_rf04 = None
+        self.df_rf08 = None
+        self.df_extra2 = None
 
-for _, linha in metricas_por_trimestre.iterrows():
-    trimestre = linha["trimestre"]
+        # Resultados das análises.
+        self.relatorio_limpeza = None
+        self.metricas = None
+        self.clientes_segmentados = None
+        self.estatisticas = None
+        self.tabela_mes_categoria = None
+        self.vendas_por_dia = None
+        self.maior_fluxo = None
+        self.menor_fluxo = None
 
-    estatisticas[f"total_vendas_{trimestre}"] = linha["n_vendas"]
+    def garantir_dataset(self):
+        """Gera o CSV somente se ele ainda não existir."""
 
-    estatisticas[f"ticket_medio_{trimestre}"] = (
-        linha["receita_total"] / linha["n_vendas"]
-    )
+        if not os.path.exists(self.caminho_csv):
+            print("\n=== RF01 - GERAÇÃO DO DATASET ===")
 
-# 3. Gasto médio por cliente em cada segmento
-gasto_medio_segmento = (
-    clientes_segmentados
-    .groupby("segmento")["total_gasto"]
-    .mean()
-)
+            # Gera os dados sem salvar em um caminho relativo.
+            df_gerado = gerar_dataset_vendas()
 
-for segmento, valor in gasto_medio_segmento.items():
-    estatisticas[f"gasto_medio_cliente_{segmento}"] = valor
+            # Salva uma única vez no caminho definido pelo RF10.
+            df_gerado.to_csv(
+                self.caminho_csv,
+                index=False
+            )
 
-# 4. Ticket médio por segmento de cliente e categoria de produto
-df_segmento_categoria = df_rf04.merge(
-    clientes_segmentados[["cliente", "segmento"]],
-    on="cliente",
-    how="left"
-)
+            print(
+                f"Dataset gerado com {len(df_gerado)} registros."
+            )
+            print(
+                f"Arquivo salvo em: {self.caminho_csv}"
+            )
+            print(df_gerado.head())
 
-metricas_segmento_categoria = (
-    df_segmento_categoria
-    .groupby(["segmento", "categoria"])
-    .agg(
-        receita_total=("receita_total", "sum"),
-        n_vendas=("id_venda", "count")
-    )
-    .reset_index()
-)
+        else:
+            print(
+                "\nDataset existente encontrado: "
+                f"{self.caminho_csv}"
+            )
 
-metricas_segmento_categoria["ticket_medio"] = (
-    metricas_segmento_categoria["receita_total"]
-    / metricas_segmento_categoria["n_vendas"]
-)
+    def carregar_dataset(self):
+        """Garante a existência do CSV e carrega os dados brutos."""
 
-for _, linha in metricas_segmento_categoria.iterrows():
-    segmento = linha["segmento"]
-    categoria = linha["categoria"]
+        print("\n=== CARREGAMENTO DO DATASET ===")
 
-    chave = f"ticket_medio_{segmento}_{categoria}"
-    estatisticas[chave] = linha["ticket_medio"]
+        self.garantir_dataset()
 
-# Executar a exportação dos resultados
-estatisticas_lidas = exportar_resultados(
-    metricas,
-    clientes_segmentados,
-    estatisticas
-)
+        self.df_bruto = pd.read_csv(self.caminho_csv)
+
+        print("Dataset carregado com sucesso.")
+        print(f"Total de registros: {len(self.df_bruto)}")
+
+        inspecionar_dados(self.df_bruto)
+
+    def executar_limpeza(self):
+        """Executa a limpeza antes de qualquer transformação."""
+
+        print("\n=== RF03 - LIMPEZA DOS DADOS ===")
+
+        (
+            self.df_limpo,
+            self.relatorio_limpeza
+        ) = tratar_dados(self.df_bruto)
+
+    def executar_transformacoes(self):
+        """Executa as transformações RF04 e RF08."""
+
+        print("\n=== RF04 - TRANSFORMAÇÕES ===")
+
+        self.df_rf04 = criar_colunas_derivadas(
+            self.df_limpo
+        )
+
+        exibir_resultados_rf04(self.df_rf04)
+
+        print("\n=== RF08 - FUNÇÃO DE ORDEM SUPERIOR ===")
+
+        self.df_rf08 = testar_funcao_ordem_superior(
+            self.df_rf04
+        )
+
+        exibir_teste_funcao_ordem_superior(
+            self.df_rf08
+        )
+
+    def executar_analises(self):
+        """Executa métricas, análises e segmentações."""
+
+        print("\n=== RF05 - MÉTRICAS AGREGADAS ===")
+
+        self.metricas = calcular_metricas(self.df_rf04)
+        exibir_metricas(self.metricas)
+
+        print("\n=== B03 - TABELA MÊS X CATEGORIA ===")
+
+        self.tabela_mes_categoria = criar_tabela_mes_categoria(
+            self.df_rf04
+        )
+
+        exibir_tabela_mes_categoria(
+            self.tabela_mes_categoria
+        )
+
+        print("\n=== ANÁLISE DE VENDAS POR DIA DA SEMANA ===")
+
+        (
+            self.df_extra2,
+            self.vendas_por_dia,
+            self.maior_fluxo,
+            self.menor_fluxo
+        ) = analisar_vendas_por_dia_semana(self.df_rf04)
+
+        exibir_analise_vendas_por_dia_semana(
+            self.df_extra2,
+            self.vendas_por_dia,
+            self.maior_fluxo,
+            self.menor_fluxo
+        )
+
+        print("\n=== RF06 - SEGMENTAÇÃO DE CLIENTES ===")
+
+        self.clientes_segmentados = segmentar_clientes(
+            self.df_rf04
+        )
+
+        exibir_segmentacao_clientes(
+            self.clientes_segmentados
+        )
+
+    def executar_visualizacoes(self):
+        """Gera os gráficos RF07, bônus e extras."""
+
+        print("\n=== RF07 - VISUALIZAÇÕES ===")
+
+        criar_grafico_receita_por_mes(self.metricas)
+        criar_grafico_top_produtos(self.metricas)
+        criar_grafico_quantidade_vs_receita(self.df_rf04)
+        criar_grafico_receita_por_regiao(self.metricas)
+
+        criar_painel_resumo(
+            self.metricas,
+            self.df_rf04
+        )
+
+        print("\n=== GRÁFICO BÔNUS B03 ===")
+
+        criar_grafico_receita_por_mes_categoria(
+            self.tabela_mes_categoria
+        )
+
+        print("\n=== GRÁFICOS EXTRAS ===")
+
+        criar_grafico_vendas_por_dia_semana(
+            self.vendas_por_dia
+        )
+
+        criar_grafico_receita_categoria_produtos(
+            self.metricas,
+            self.df_rf04
+        )
+
+        criar_grafico_receita_por_trimestre_top5(
+            self.df_rf04,
+            self.metricas
+        )
+
+        criar_grafico_receita_segmento_categoria(
+            self.df_rf04,
+            self.clientes_segmentados
+        )
+
+        criar_grafico_clientes_regiao_segmento(
+            self.df_rf04,
+            self.clientes_segmentados
+        )
+
+        print("\n=== MAPA DE CALOR B04 ===")
+
+        criar_mapa_calor_receita_produto_categoria(
+            self.df_rf04
+        )
+
+    def exibir_resumo_e_conclusao(self):
+        """Apresenta o resumo com as métricas calculadas."""
+
+        print("\n" + "=" * 60)
+        print("SALESINSIGHT PY - RESUMO E CONCLUSÃO")
+        print("=" * 60)
+
+        # Produto com maior receita.
+        top_produto = self.metricas["top_produtos"].iloc[0]
+
+        print(
+            f"\nProduto de maior receita no Top 5: "
+            f"{top_produto['produto']} "
+            f"(R$ {top_produto['receita_total']:,.2f})"
+        )
+
+        # Categoria com maior receita.
+        top_categoria = self.metricas["por_categoria"].iloc[0]
+
+        print(
+            f"Categoria de maior receita: "
+            f"{top_categoria['categoria']} "
+            f"(R$ {top_categoria['receita_total']:,.2f})"
+        )
+
+        # Região com maior receita.
+        top_regiao = self.metricas["por_regiao"].iloc[0]
+
+        print(
+            f"Região de maior receita: "
+            f"{top_regiao['regiao']} "
+            f"(R$ {top_regiao['receita_total']:,.2f})"
+        )
+
+        # Mês com maior receita.
+        dados_mensais = self.metricas["por_mes"]
+
+        top_mes = dados_mensais.loc[
+            dados_mensais["receita_total"].idxmax()
+        ]
+
+        meses = {
+            1: "Janeiro",
+            2: "Fevereiro",
+            3: "Março",
+            4: "Abril",
+            5: "Maio",
+            6: "Junho",
+            7: "Julho",
+            8: "Agosto",
+            9: "Setembro",
+            10: "Outubro",
+            11: "Novembro",
+            12: "Dezembro",
+        }
+
+        nome_mes = meses[int(top_mes["mes"])]
+
+        print(
+            f"Mês de maior receita: {nome_mes} "
+            f"(R$ {top_mes['receita_total']:,.2f})"
+        )
+
+        print(
+            f"\nRegistros válidos após a limpeza: "
+            f"{len(self.df_limpo)}"
+        )
+
+        print(
+            "\nConclusão: as métricas e visualizações acima "
+            "permitem identificar os produtos, as categorias, "
+            "as regiões e os períodos de maior receita. "
+            "Esses resultados podem apoiar a análise do "
+            "desempenho comercial."
+        )
+
+    def executar_exportacao(self):
+        """Prepara estatísticas e executa a exportação RF09 uma vez."""
+
+        print("\n=== RF09 - EXPORTAÇÃO DOS RESULTADOS ===")
+
+        self.estatisticas = preparar_estatisticas_gerais(
+            self.metricas,
+            self.df_rf04,
+            self.clientes_segmentados
+        )
+
+        exportar_resultados(
+            self.metricas,
+            self.clientes_segmentados,
+            self.estatisticas
+        )
+
+    def executar(self):
+        """Executa o fluxo completo na ordem definida pelo RF10."""
+
+        print("=" * 60)
+        print("SALESINSIGHT PY - INÍCIO DA EXECUÇÃO")
+        print("=" * 60)
+
+        self.carregar_dataset()
+        self.executar_limpeza()
+        self.executar_transformacoes()
+        self.executar_analises()
+        self.executar_visualizacoes()
+        self.exibir_resumo_e_conclusao()
+        self.executar_exportacao()
+
+        print("\n" + "=" * 60)
+        print("SALESINSIGHT PY - EXECUÇÃO CONCLUÍDA")
+        print("=" * 60)
+
+        print(
+            "\nArquivos CSV e JSON exportados para a pasta outputs."
+        )
+        print("Gráficos salvos na pasta outputs/graficos.")
+
+        return self
+
+
+# ============================================================
+# PONTO DE ENTRADA DO PROGRAMA - RF10
+# ============================================================
+
+def main():
+    """Ponto de entrada principal do SalesInsight PY."""
+
+    analisador = AnalisadorDeVendas()
+    analisador.executar()
+
+
+if __name__ == "__main__":
+    main()
