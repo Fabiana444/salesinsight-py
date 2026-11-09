@@ -338,6 +338,6 @@ Os resultados apresentados são descritivos: o projeto organiza e resume os dado
 
 ---
 
-### 📋 Avaliação do Projeto
+### Avaliação do Projeto
 
 [Nota](https://github.com/Fabiana444/salesinsight-py/blob/main/assets/projeto-salesinsights_nota.png) · [Avaliação](https://github.com/Fabiana444/salesinsight-py/blob/main/assets/projeto-salesinsights_avaliacao_itens.png)
