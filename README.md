@@ -5,7 +5,7 @@
 
 
 ## Sobre o projeto
-O SalesInsight PY é um projeto de análise e visualização de dados de vendas desenvolvido em Python como mini-projeto avaliativo do curso Desenvolvimento de IA para Análise Preditiva, Módulo 01, do SC TEC - Senai SC.
+O SalesInsight PY é um projeto de análise e visualização de dados de vendas desenvolvido em Python como miniprojeto avaliativo do curso Desenvolvimento de IA para Análise Preditiva, Módulo 01, do SC TEC - Senai SC.
 O projeto realiza o carregamento, a inspeção, a limpeza e a transformação de um conjunto de dados de vendas. Em seguida, calcula métricas, analisa o desempenho comercial, segmenta clientes por faixa de gasto, gera gráficos e exporta os resultados em arquivos CSV e JSON.
 O objetivo é organizar um fluxo de análise de dados que carregue, transforme, agregue e visualize um dataset de vendas, gerando insights relevantes e exportando os resultados.
 Para alcançá-lo é necessário atender o desafio de gerar um relatório analítico, a partir de um histórico de vendas, que responda as seguintes perguntas:
@@ -335,3 +335,9 @@ Os resultados apresentados são descritivos: o projeto organiza e resume os dado
 
 ### Documento elaborado para o curso Desenvolvimento de IA para Análise Preditiva — Módulo 01, Semana 07, como parte do mini-projeto avaliativo.
 
+
+---
+
+### 📋 Avaliação do Projeto
+
+[Nota](https://github.com/Fabiana444/salesinsight-py/blob/main/assets/projeto-salesinsights_nota.png) · [Avaliação](https://github.com/Fabiana444/salesinsight-py/blob/main/assets/projeto-salesinsights_avaliacao_itens.png)
