@@ -28,7 +28,7 @@ Visualizações em PNG para facilitar a interpretação dos resultados
 
 - Receita total por mês e categoria.
 
-_ Receita por trimestre e top 5 produtos.
+- Receita por trimestre e top 5 produtos.
 
 - Receita por segmento de cliente e categoria de produto.
 
