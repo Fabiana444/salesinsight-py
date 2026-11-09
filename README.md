@@ -24,7 +24,7 @@ Visualizações em PNG para facilitar a interpretação dos resultados
 
 - Receita total por região.
 
--Receita por categoria e produto.
+- Receita por categoria e produto.
 
 - Receita total por mês e categoria.
 
